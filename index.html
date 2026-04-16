@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reportes de Servicios - Tres Siglos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            background: #f5f5f5;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-btn:hover {
+            background: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table thead {
+            background: #f5f5f5;
+        }
+
+        table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #ddd;
+        }
+
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        table tbody tr:hover {
+            background: #f9f9f9;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .button-group {
+            margin: 20px 0;
+            text-align: right;
+        }
+
+        .search-container {
+            margin: 20px 0;
+            text-align: left;
+            position: relative;
+        }
+
+        .search-results {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            color: #666;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 95%;
+            max-width: 560px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+            table-layout: auto;
+        }
+
+        table th,
+        table td {
+            padding: 10px;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            word-break: break-word;
+        }
+
+        #serviciosTable th:nth-child(1),
+        #serviciosTable th:nth-child(2),
+        #serviciosTable td:nth-child(1),
+        #serviciosTable td:nth-child(2) {
+            white-space: nowrap;
+            max-width: 110px;
+            width: 110px;
+        }
+
+        .expandable-cell {
+            cursor: help;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .expandable-cell:hover,
+        .expandable-cell.expanded {
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            background: #fff;
+            z-index: 2;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 320px;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .close-btn {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .close-btn:hover {
+            background: #d0d0d0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-yes {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-no {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .status-pending {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .info-box {
+            background: #e0e7ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            color: #3c366b;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Sistema de Reportes de Servicios - Tres Siglos</h1>
+            <p>Gestión integral de Unidades Tres Siglos y detalles de servicios</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('unidades')">Unidades</button>
+            <button class="tab-btn" onclick="switchTab('servicios')">Detalles de Servicios</button>
+        </div>
+
+        <!-- TAB UNIDADES -->
+        <div id="unidades" class="tab-content active">
+            <div class="info-box">
+                ℹ️ Aquí se visualizan todas las unidades registradas
+            </div>
+            <div class="search-container">
+                <input type="text" id="searchUnidades" placeholder="🔍 Buscar unidades..." class="search-input">
+                <div id="unidadesResults" class="search-results"></div>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="openAddUnitForm()">+ Agregar Unidad</button>
+            </div>
+            <div class="table-wrapper">
+                <table id="unidadesTable">
+                    <thead>
+                        <tr>
+                            <th>Economico</th>
+                            <th>Unidad</th>
+                            <th>Asignado a</th>
+                            <th>Modelo</th>
+                            <th>Placas</th>
+                            <th>NIV</th>
+                            <th>Tipo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="unidadesBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB DETALLES DE SERVICIOS -->
+        <div id="servicios" class="tab-content">
+            <div class="info-box">
+                ℹ️ Registre aquí los detalles de los servicios realizados
+            </div>
+            <div class="search-container">
+                <input type="text" id="searchServicios" placeholder="🔍 Buscar servicios..." class="search-input">
+                <div id="serviciosResults" class="search-results"></div>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-success" onclick="openServiceForm()">+ Nuevo Servicio</button>
+            </div>
+            <div class="table-wrapper">
+                <table id="serviciosTable">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Unidad</th>
+                            <th>Tema</th>
+                            <th>Solución</th>
+                            <th>¿Se Arregló?</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="serviciosBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AGREGAR UNIDAD -->
+    <div id="unitModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Agregar Nueva Unidad</div>
+            <div class="modal-body">
+                <form id="unitForm">
+                    <div class="form-group">
+                        <label>Economico</label>
+                        <input type="text" id="economia" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Unidad</label>
+                        <input type="text" id="unidad" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Asignado a</label>
+                        <input type="text" id="asignado" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Modelo</label>
+                        <input type="text" id="modelo" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Placas</label>
+                        <input type="text" id="placas" required>
+                    </div>
+                    <div class="form-group">
+                        <label>NIV</label>
+                        <input type="text" id="niv" required>
+                    </div>
+                    <div class="form-group">
+                        <label>No. Motor</label>
+                        <input type="text" id="noMotor" required>
+                    </div>
+                    <div class="form-group">
+                        <label>No. Tag</label>
+                        <input type="text" id="noTag" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Aseguradora</label>
+                        <input type="text" id="aseguradora" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Póliza de Seguro</label>
+                        <input type="text" id="poliza" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Inciso</label>
+                        <input type="text" id="inciso" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo</label>
+                        <input type="text" id="tipo" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn close-btn" onclick="closeModal('unitModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveUnit()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AGREGAR SERVICIO -->
+    <div id="serviceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Nuevo Detalle de Servicio</div>
+            <div class="modal-body">
+                <form id="serviceForm">
+                    <div class="form-group full-service">
+                        <label>Fecha</label>
+                        <input type="date" id="fecha" required>
+                    </div>
+                    <div class="form-group full-service">
+                        <label>Económico</label>
+                        <select id="economicoServicio" onchange="updateServiceUnidad()" required>
+                            <option value="">Seleccione económico...</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-service">
+                        <label>Unidad</label>
+                        <input type="text" id="unidadServicio" readonly placeholder="Se llenará al elegir económico">
+                    </div>
+                    <div class="form-group full-service">
+                        <label>Tema</label>
+                        <input type="text" id="tema" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Solución</label>
+                        <textarea id="solucion" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>¿Se Arregló?</label>
+                        <select id="arreglo" required>
+                            <option value="">Seleccione...</option>
+                            <option value="Si">Sí</option>
+                            <option value="No">No</option>
+                            <option value="Pendiente">Pendiente</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn close-btn" onclick="closeModal('serviceModal')">Cancelar</button>
+                <button class="btn btn-success" onclick="saveService()">Guardar Servicio</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Base de Datos SheetDB
+        const API_URL = 'https://sheetdb.io/api/v1/wolez9lc8e2vc';
+
+        // Variables globales para almacenar datos originales
+        let allUnits = [];
+        let allServices = [];
+        let editingUnitRow = null;
+        let editingServiceRow = null;
+
+        // Cambiar tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Modales
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        function openAddUnitForm() {
+            document.getElementById('unitForm').reset();
+            editingUnitRow = null;
+            document.querySelector('#unitModal .modal-header').textContent = 'Agregar Nueva Unidad';
+            openModal('unitModal');
+        }
+
+        function openServiceForm() {
+            document.getElementById('serviceForm').reset();
+            editingServiceRow = null;
+            toggleServiceFields(false);
+            document.querySelector('#serviceModal .modal-header').textContent = 'Nuevo Detalle de Servicio';
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('fecha').value = today;
+            document.getElementById('unidadServicio').value = '';
+            document.getElementById('economicoServicio').innerHTML = '<option value="">Seleccione económico...</option>';
+            loadUnitsIntoSelect();
+            openModal('serviceModal');
+        }
+
+        function toggleServiceFields(editMode) {
+            document.querySelectorAll('.full-service').forEach(el => {
+                el.style.display = editMode ? 'none' : 'block';
+            });
+        }
+
+        function editUnit(sheetRow) {
+            const unit = allUnits.find(item => item.__sheetRow === sheetRow);
+            if (!unit) return;
+            editingUnitRow = unit.id || unit.__sheetRow;
+            document.querySelector('#unitModal .modal-header').textContent = 'Editar Unidad';
+            document.getElementById('economia').value = unit['ECONOMICO'] || '';
+            document.getElementById('unidad').value = unit['UNIDAD'] || '';
+            document.getElementById('asignado').value = unit['ASIGNADO A'] || '';
+            document.getElementById('modelo').value = unit['MODELO'] || '';
+            document.getElementById('placas').value = unit['PLACAS'] || '';
+            document.getElementById('niv').value = unit['NIV'] || '';
+            document.getElementById('noMotor').value = unit['No. MOTOR'] || '';
+            document.getElementById('noTag').value = unit['No. DE TAG'] || '';
+            document.getElementById('aseguradora').value = unit['ASEGURADORA'] || '';
+            document.getElementById('poliza').value = unit['POLIZA DE SEGURO'] || '';
+            document.getElementById('inciso').value = unit['INCISO'] || '';
+            document.getElementById('tipo').value = unit['TIPO'] || '';
+            openModal('unitModal');
+        }
+
+        async function editService(sheetRow) {
+            const service = allServices.find(item => item.__sheetRow === sheetRow);
+            if (!service) return;
+            editingServiceRow = service.id || service.__sheetRow;
+            toggleServiceFields(true);
+            document.querySelector('#serviceModal .modal-header').textContent = 'Editar Servicio';
+            await loadUnitsIntoSelect();
+            document.getElementById('economicoServicio').value = service['ECONOMICO'] || '';
+            updateServiceUnidad();
+            document.getElementById('unidadServicio').value = service['UNIDAD'] || document.getElementById('unidadServicio').value;
+            document.getElementById('fecha').value = service['FECHA'] || '';
+            document.getElementById('tema').value = service['TEMA'] || '';
+            document.getElementById('solucion').value = service['SOLUCION'] || '';
+            document.getElementById('arreglo').value = service['SE ARREGLO O NO'] || '';
+            openModal('serviceModal');
+        }
+
+        // Guardar Unidad en SheetDB
+        async function saveUnit() {
+            const unit = {
+                'ECONOMICO': document.getElementById('economia').value,
+                'UNIDAD': document.getElementById('unidad').value,
+                'ASIGNADO A': document.getElementById('asignado').value,
+                'MODELO': document.getElementById('modelo').value,
+                'PLACAS': document.getElementById('placas').value,
+                'NIV': document.getElementById('niv').value,
+                'No. MOTOR': document.getElementById('noMotor').value,
+                'No. DE TAG': document.getElementById('noTag').value,
+                'ASEGURADORA': document.getElementById('aseguradora').value,
+                'POLIZA DE SEGURO': document.getElementById('poliza').value,
+                'INCISO': document.getElementById('inciso').value,
+                'TIPO': document.getElementById('tipo').value
+            };
+
+            try {
+                let response;
+                if (editingUnitRow != null) {
+                    console.log('Actualizando unidad en SheetDB:', unit, 'fila', editingUnitRow);
+                    response = await fetch(`${API_URL}/rows/${editingUnitRow}?sheet=UNIDADES%20TRES%20SIGLOS`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ data: [unit] })
+                    });
+                } else {
+                    console.log('Enviando a SheetDB (UNIDADES TRES SIGLOS):', unit);
+                    response = await fetch(`${API_URL}?sheet=UNIDADES%20TRES%20SIGLOS`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(unit)
+                    });
+                }
+
+                const result = await response.json();
+                console.log('Respuesta SheetDB:', result);
+
+                if (response.ok) {
+                    alert(editingUnitRow !== null ? '✓ Unidad actualizada correctamente' : '✓ Unidad guardada correctamente');
+                    closeModal('unitModal');
+                    document.getElementById('unitForm').reset();
+                    editingUnitRow = null;
+                    document.querySelector('#unitModal .modal-header').textContent = 'Agregar Nueva Unidad';
+                    // Esperar y recargar los datos
+                    setTimeout(() => {
+                        loadUnits();
+                        loadUnitsIntoSelect();
+                    }, 1000);
+                } else {
+                    throw new Error(result.message || 'Error al guardar');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        // Guardar Servicio en SheetDB
+        async function saveService() {
+            const service = {
+                'FECHA': document.getElementById('fecha').value,
+                'ECONOMICO': document.getElementById('economicoServicio').value,
+                'UNIDAD': document.getElementById('unidadServicio').value,
+                'TEMA': document.getElementById('tema').value,
+                'SOLUCION': document.getElementById('solucion').value,
+                'SE ARREGLO O NO': document.getElementById('arreglo').value
+            };
+
+            try {
+                let response;
+                if (editingServiceRow != null) {
+                    console.log('Actualizando servicio en SheetDB:', service, 'fila', editingServiceRow);
+                    response = await fetch(`${API_URL}/rows/${editingServiceRow}?sheet=DETALLES%20DE%20SERVICIOS`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ data: [service] })
+                    });
+                } else {
+                    console.log('Enviando servicio a SheetDB (DETALLES DE SERVICIOS):', service);
+                    response = await fetch(`${API_URL}?sheet=DETALLES%20DE%20SERVICIOS`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(service)
+                    });
+                }
+
+                const result = await response.json();
+                console.log('Respuesta SheetDB:', result);
+
+                if (response.ok) {
+                    alert(editingServiceRow !== null ? '✓ Servicio actualizado correctamente' : '✓ Servicio guardado correctamente');
+                    closeModal('serviceModal');
+                    document.getElementById('serviceForm').reset();
+                    editingServiceRow = null;
+                    document.querySelector('#serviceModal .modal-header').textContent = 'Nuevo Detalle de Servicio';
+                    // Esperar y recargar los datos
+                    setTimeout(() => {
+                        loadServices();
+                    }, 1000);
+                } else {
+                    throw new Error(result.message || 'Error al guardar');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        // Cargar Unidades desde SheetDB
+        async function loadUnits() {
+            try {
+                console.log('Cargando unidades de SheetDB...');
+                const response = await fetch(`${API_URL}?sheet=UNIDADES%20TRES%20SIGLOS`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) throw new Error(`Error HTTP ${response.status}`);
+                
+                const data = await response.json();
+                console.log('Datos de unidades:', data);
+                
+                const units = Array.isArray(data) ? data : (data.data || []);
+                allUnits = units.map((unit, index) => ({ ...unit, __sheetRow: index + 2 }));
+                displayUnits(allUnits);
+                
+                // Si hay búsqueda activa, aplicar filtro
+                const searchTerm = document.getElementById('searchUnidades').value;
+                if (searchTerm) {
+                    searchUnits();
+                }
+            } catch (error) {
+                console.error('Error cargando unidades:', error);
+                allUnits = [];
+                displayUnits([]);
+            }
+        }
+
+        // Cargar Servicios desde SheetDB
+        async function loadServices() {
+            try {
+                console.log('Cargando servicios de SheetDB...');
+                const response = await fetch(`${API_URL}?sheet=DETALLES%20DE%20SERVICIOS`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) throw new Error(`Error HTTP ${response.status}`);
+                
+                const data = await response.json();
+                console.log('Datos de servicios:', data);
+                
+                const services = Array.isArray(data) ? data : (data.data || []);
+                allServices = services.map((service, index) => ({ ...service, __sheetRow: index + 2 }));
+                displayServices(allServices);
+                
+                // Si hay búsqueda activa, aplicar filtro
+                const searchTerm = document.getElementById('searchServicios').value;
+                if (searchTerm) {
+                    searchServices();
+                }
+            } catch (error) {
+                console.error('Error cargando servicios:', error);
+                allServices = [];
+                displayServices([]);
+            }
+        }
+
+        // Mostrar Unidades en tabla
+        function displayUnits(units, isFiltered = false) {
+            const body = document.getElementById('unidadesBody');
+            body.innerHTML = '';
+
+            if (!units || units.length === 0) {
+                const message = isFiltered ? 'No se encontraron unidades que coincidan con la búsqueda' : 'No hay unidades registradas';
+                body.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #999;">${message}</td></tr>`;
+                return;
+            }
+
+            units.forEach(unit => {
+                const row = `
+                    <tr>
+                        <td>${unit['ECONOMICO'] || ''}</td>
+                        <td>${unit['UNIDAD'] || ''}</td>
+                        <td>${unit['ASIGNADO A'] || ''}</td>
+                        <td>${unit['MODELO'] || ''}</td>
+                        <td>${unit['PLACAS'] || ''}</td>
+                        <td>${unit['NIV'] || ''}</td>
+                        <td>${unit['TIPO'] || ''}</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="editUnit(${unit.__sheetRow})">Editar</button>
+                        </td>
+                    </tr>
+                `;
+                body.innerHTML += row;
+            });
+        }
+
+        // Mostrar Servicios en tabla
+        function displayServices(services, isFiltered = false) {
+            const body = document.getElementById('serviciosBody');
+            body.innerHTML = '';
+
+            if (!services || services.length === 0) {
+                const message = isFiltered ? 'No se encontraron servicios que coincidan con la búsqueda' : 'No hay servicios registrados';
+                body.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #999;">${message}</td></tr>`;
+                return;
+            }
+
+            services.forEach((service, index) => {
+                let statusClass = 'status-pending';
+                let statusText = service['SE ARREGLO O NO'] || 'Pendiente';
+
+                if (service['SE ARREGLO O NO'] === 'Si') statusClass = 'status-yes';
+                if (service['SE ARREGLO O NO'] === 'No') statusClass = 'status-no';
+
+                const row = `
+                    <tr>
+                        <td>${service['FECHA'] || ''}</td>
+                        <td>${service['UNIDAD'] || ''}</td>
+                        <td>${service['TEMA'] || ''}</td>
+                        <td class="expandable-cell${isFiltered ? ' expanded' : ''}">${service['SOLUCION'] || ''}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <button class="btn btn-primary" onclick="editService(${service.__sheetRow})">Editar</button>
+                            <button class="btn btn-danger" onclick="deleteService('${service.id || service.__sheetRow}')">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+                body.innerHTML += row;
+            });
+        }
+
+        // Cargar unidades en el select del formulario
+        async function loadUnitsIntoSelect() {
+            try {
+                console.log('Cargando unidades para el select...');
+                let units = allUnits;
+
+                if (!units || units.length === 0) {
+                    const response = await fetch(`${API_URL}?sheet=UNIDADES%20TRES%20SIGLOS`, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const data = await response.json();
+                    units = Array.isArray(data) ? data : (data.data || []);
+                }
+
+                const select = document.getElementById('economicoServicio');
+                select.innerHTML = '<option value="">Seleccione económico...</option>';
+
+                units.forEach(unit => {
+                    const option = document.createElement('option');
+                    option.value = unit['ECONOMICO'] || '';
+                    option.textContent = `${unit['ECONOMICO'] || ''} - ${unit['UNIDAD'] || ''}`;
+                    option.dataset.unidad = unit['UNIDAD'] || '';
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error al cargar unidades:', error);
+            }
+        }
+
+        function updateServiceUnidad() {
+            const select = document.getElementById('economicoServicio');
+            const selectedOption = select.options[select.selectedIndex];
+            const unidadField = document.getElementById('unidadServicio');
+            unidadField.value = selectedOption ? selectedOption.dataset.unidad || '' : '';
+        }
+
+        // Eliminar Servicio de SheetDB
+        async function deleteService(serviceId) {
+            if (confirm('¿Está seguro de que desea eliminar este servicio?')) {
+                try {
+                    const response = await fetch(`${API_URL}?sheet=DETALLES%20DE%20SERVICIOS`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: serviceId })
+                    });
+
+                    if (response.ok) {
+                        alert('✓ Servicio eliminado');
+                        loadServices();
+                    } else {
+                        throw new Error('Error al eliminar');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error al eliminar el servicio');
+                }
+            }
+        }
+
+        // Función de búsqueda para unidades
+        function searchUnits() {
+            const searchTerm = document.getElementById('searchUnidades').value.toLowerCase();
+            const resultsDiv = document.getElementById('unidadesResults');
+            
+            if (!searchTerm) {
+                displayUnits(allUnits);
+                resultsDiv.style.display = 'none';
+                return;
+            }
+
+            const filteredUnits = allUnits.filter(unit => {
+                return Object.values(unit).some(value => 
+                    value && value.toString().toLowerCase().includes(searchTerm)
+                );
+            });
+            
+            displayUnits(filteredUnits, true);
+            
+            // Mostrar contador de resultados
+            const resultCount = filteredUnits.length;
+            resultsDiv.textContent = `${resultCount} resultado${resultCount !== 1 ? 's' : ''}`;
+            resultsDiv.style.display = 'block';
+        }
+
+        // Función de búsqueda para servicios
+        function searchServices() {
+            const searchTerm = document.getElementById('searchServicios').value.toLowerCase();
+            const resultsDiv = document.getElementById('serviciosResults');
+            
+            if (!searchTerm) {
+                displayServices(allServices);
+                resultsDiv.style.display = 'none';
+                return;
+            }
+
+            const filteredServices = allServices.filter(service => {
+                return Object.values(service).some(value => 
+                    value && value.toString().toLowerCase().includes(searchTerm)
+                );
+            });
+            
+            displayServices(filteredServices, true);
+            
+            // Mostrar contador de resultados
+            const resultCount = filteredServices.length;
+            resultsDiv.textContent = `${resultCount} resultado${resultCount !== 1 ? 's' : ''}`;
+            resultsDiv.style.display = 'block';
+        }
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            const modals = ['unitModal', 'serviceModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    closeModal(modalId);
+                }
+            });
+        }
+
+        // Cargar datos al iniciar y recargar cada 5 segundos
+        window.addEventListener('load', function() {
+            console.log('Inicializando aplicación con SheetDB...');
+            loadUnits();
+            loadServices();
+            
+            // Configurar buscadores
+            document.getElementById('searchUnidades').addEventListener('input', searchUnits);
+            document.getElementById('searchServicios').addEventListener('input', searchServices);
+            
+            // Recargar datos automáticamente cada 5 segundos
+            setInterval(() => {
+                loadUnits();
+                loadServices();
+            }, 5000);
+        });
+    </script>
+</body>
+</html>
