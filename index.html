@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.4) 0%, rgba(118, 75, 162, 0.4) 100%), url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjyLyHIA-6oANa-OiDRThCSEdygPv5JOzPvUocQgGtv0Fhucw1i0oc6-w&s') fixed center/cover no-repeat;
             min-height: 100vh;
             padding: 20px;
         }
@@ -1136,11 +1136,11 @@
             document.getElementById('searchUnidades').addEventListener('input', searchUnits);
             document.getElementById('searchServicios').addEventListener('input', searchServices);
             
-            // Recargar datos automáticamente cada 5 segundos
-            setInterval(() => {
-                loadUnits();
-                loadServices();
-            }, 15000);
+            // Auto-reload deshabilitado para reducir llamadas a SheetDB
+            // setInterval(() => {
+            //     loadUnits();
+            //     loadServices();
+            // }, 15000);
         });
     </script>
 </body>
