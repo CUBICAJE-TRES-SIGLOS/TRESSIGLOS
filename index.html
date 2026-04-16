@@ -596,11 +596,11 @@
                         <input type="text" id="tema" required>
                     </div>
                     <div class="form-group">
-                        <label>comentario</label>
-                        <textarea id="comentario" required></textarea>
+                        <label>Comentarios</label>
+                        <textarea id="comentarios" required></textarea>
                     </div>
                     <div class="form-group">
-                        <label>estatus</label>
+                        <label>Estatus</label>
                         <select id="estatus">
                             <option value="">Sin estatus</option>
                             <option value="Si">Sí</option>
@@ -703,8 +703,8 @@
             document.getElementById('unidadServicio').value = service['UNIDAD'] || document.getElementById('unidadServicio').value;
             document.getElementById('fecha').value = service['FECHA'] || '';
             document.getElementById('tema').value = service['TEMA'] || '';
-            document.getElementById('comentario').value = service['comentario'] || '';
-            document.getElementById('estatus').value = service['estatus'] || '';
+            document.getElementById('comentarios').value = service['COMENTARIO'] || '';
+            document.getElementById('estatus').value = service['ESTATUS'] || '';
             openModal('serviceModal');
         }
 
@@ -729,13 +729,29 @@
             try {
                 let response;
                 if (editingUnitRow != null) {
-                    console.log('Actualizando unidad en SheetDB:', unit, 'fila', editingUnitRow);
-                    response = await fetch(`${API_URL}/rows/${editingUnitRow}?sheet=UNIDADES%20TRES%20SIGLOS`, {
-                        method: 'PUT',
+                    // Si se está editando, buscar y eliminar la unidad antigua
+                    console.log('Eliminando unidad anterior para reemplazar...');
+                    const oldUnit = allUnits.find(item => item.__sheetRow === editingUnitRow);
+                    
+                    if (oldUnit && oldUnit.ECONOMICO) {
+                        // Buscar por criterios exactos
+                        const deleteResponse = await fetch(`${API_URL}?sheet=UNIDADES%20TRES%20SIGLOS&ECONOMICO=${encodeURIComponent(oldUnit.ECONOMICO)}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        console.log('DELETE response:', deleteResponse.status);
+                    }
+                    
+                    // Luego insertar la nueva unidad
+                    console.log('Insertando unidad actualizada en SheetDB:', unit);
+                    response = await fetch(`${API_URL}?sheet=UNIDADES%20TRES%20SIGLOS`, {
+                        method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ data: [unit] })
+                        body: JSON.stringify(unit)
                     });
                 } else {
                     console.log('Enviando a SheetDB (UNIDADES TRES SIGLOS):', unit);
@@ -777,20 +793,36 @@
                 'FECHA': document.getElementById('fecha').value,
                 'UNIDAD': document.getElementById('economicoServicio').value,
                 'TEMA': document.getElementById('tema').value,
-                'comentario': document.getElementById('comentario').value,
-                'estatus': document.getElementById('estatus').value
+                'COMENTARIO': document.getElementById('comentarios').value,
+                'ESTATUS': document.getElementById('estatus').value
             };
 
             try {
                 let response;
                 if (editingServiceRow != null) {
-                    console.log('Actualizando servicio en SheetDB:', service, 'fila', editingServiceRow);
-                    response = await fetch(`${API_URL}/rows/${editingServiceRow}?sheet=DETALLES%20DE%20SERVICIOS`, {
-                        method: 'PUT',
+                    // Si se está editando, buscar y eliminar el registro anterior
+                    console.log('Eliminando servicio anterior para reemplazar...');
+                    const oldService = allServices.find(item => item.__sheetRow === editingServiceRow);
+                    
+                    if (oldService && oldService.FECHA && oldService.UNIDAD && oldService.TEMA) {
+                        // Buscar por criterios exactos
+                        const deleteResponse = await fetch(`${API_URL}?sheet=DETALLES%20DE%20SERVICIOS&FECHA=${encodeURIComponent(oldService.FECHA)}&UNIDAD=${encodeURIComponent(oldService.UNIDAD)}&TEMA=${encodeURIComponent(oldService.TEMA)}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        console.log('DELETE response:', deleteResponse.status);
+                    }
+                    
+                    // Luego insertar el nuevo registro
+                    console.log('Insertando servicio actualizado en SheetDB:', service);
+                    response = await fetch(`${API_URL}?sheet=DETALLES%20DE%20SERVICIOS`, {
+                        method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ data: [service] })
+                        body: JSON.stringify(service)
                     });
                 } else {
                     console.log('Enviando servicio a SheetDB (DETALLES DE SERVICIOS):', service);
@@ -799,7 +831,7 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ data: [service] })
+                        body: JSON.stringify(service)
                     });
                 }
 
@@ -955,7 +987,7 @@
                         <td>${service['FECHA'] || ''}</td>
                         <td>${service['UNIDAD'] || ''}</td>
                         <td>${service['TEMA'] || ''}</td>
-                        <td class="expandable-cell${isFiltered ? ' expanded' : ''}">${service['comentario'] || ''}</td>
+                        <td class="expandable-cell${isFiltered ? ' expanded' : ''}">${service['COMENTARIO'] || ''}</td>
                         <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                         <td>
                             <button class="btn btn-primary" onclick="editService(${service.__sheetRow})">Editar</button>
