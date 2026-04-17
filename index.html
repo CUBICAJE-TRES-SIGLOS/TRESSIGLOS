@@ -494,7 +494,7 @@
                             <th>Unidad</th>
                             <th>Tema</th>
                             <th>comentario</th>
-                            <th>estatus</th>
+                            <th>Estatus</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -729,19 +729,31 @@
             try {
                 let response;
                 if (editingUnitRow != null) {
-                    // Si se está editando, buscar y eliminar la unidad antigua
+                    // Si se está editando, buscar y eliminar CORRECTAMENTE la unidad antigua
                     console.log('Eliminando unidad anterior para reemplazar...');
                     const oldUnit = allUnits.find(item => item.__sheetRow === editingUnitRow);
                     
                     if (oldUnit && oldUnit.ECONOMICO) {
-                        // Buscar por criterios exactos
-                        const deleteResponse = await fetch(`${API_URL}?sheet=UNIDADES%20TRES%20SIGLOS&ECONOMICO=${encodeURIComponent(oldUnit.ECONOMICO)}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'Content-Type': 'application/json'
+                        try {
+                            // Enviar DELETE y esperar respuesta
+                            const deleteResponse = await fetch(`${API_URL}?sheet=UNIDADES%20TRES%20SIGLOS&ECONOMICO=${encodeURIComponent(oldUnit.ECONOMICO)}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                            
+                            if (deleteResponse.ok) {
+                                console.log('✓ Unidad anterior eliminada correctamente');
+                                // Esperar 500ms para que SheetDB procese el DELETE
+                                await new Promise(resolve => setTimeout(resolve, 500));
+                            } else {
+                                const deleteResult = await deleteResponse.json();
+                                console.warn('DELETE no OK pero continuar:', deleteResult);
                             }
-                        });
-                        console.log('DELETE response:', deleteResponse.status);
+                        } catch (deleteError) {
+                            console.warn('Error en DELETE, continuando con POST:', deleteError);
+                        }
                     }
                     
                     // Luego insertar la nueva unidad
@@ -800,19 +812,31 @@
             try {
                 let response;
                 if (editingServiceRow != null) {
-                    // Si se está editando, buscar y eliminar el registro anterior
+                    // Si se está editando, buscar y eliminar CORRECTAMENTE el registro anterior
                     console.log('Eliminando servicio anterior para reemplazar...');
                     const oldService = allServices.find(item => item.__sheetRow === editingServiceRow);
                     
                     if (oldService && oldService.FECHA && oldService.UNIDAD && oldService.TEMA) {
-                        // Buscar por criterios exactos
-                        const deleteResponse = await fetch(`${API_URL}?sheet=DETALLES%20DE%20SERVICIOS&FECHA=${encodeURIComponent(oldService.FECHA)}&UNIDAD=${encodeURIComponent(oldService.UNIDAD)}&TEMA=${encodeURIComponent(oldService.TEMA)}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'Content-Type': 'application/json'
+                        try {
+                            // Enviar DELETE y esperar respuesta
+                            const deleteResponse = await fetch(`${API_URL}?sheet=DETALLES%20DE%20SERVICIOS&FECHA=${encodeURIComponent(oldService.FECHA)}&UNIDAD=${encodeURIComponent(oldService.UNIDAD)}&TEMA=${encodeURIComponent(oldService.TEMA)}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                            
+                            if (deleteResponse.ok) {
+                                console.log('✓ Registro anterior eliminado correctamente');
+                                // Esperar 500ms para que SheetDB procese el DELETE
+                                await new Promise(resolve => setTimeout(resolve, 500));
+                            } else {
+                                const deleteResult = await deleteResponse.json();
+                                console.warn('DELETE no OK pero continuar:', deleteResult);
                             }
-                        });
-                        console.log('DELETE response:', deleteResponse.status);
+                        } catch (deleteError) {
+                            console.warn('Error en DELETE, continuando con POST:', deleteError);
+                        }
                     }
                     
                     // Luego insertar el nuevo registro
@@ -970,14 +994,14 @@
 
             services.forEach((service, index) => {
                 let statusClass = 'status-pending';
-                let statusText = service['estatus'] || 'Pendiente';
+                let statusText = service['ESTATUS'] || 'Pendiente';
                 let rowClass = 'status-row-pending';
 
-                if (service['estatus'] === 'Si') {
+                if (service['ESTATUS'] === 'Si') {
                     statusClass = 'status-yes';
                     rowClass = 'status-row-yes';
                 }
-                if (service['estatus'] === 'No') {
+                if (service['ESTATUS'] === 'No') {
                     statusClass = 'status-no';
                     rowClass = 'status-row-no';
                 }
@@ -1046,21 +1070,38 @@
         async function deleteService(serviceId) {
             if (confirm('¿Está seguro de que desea eliminar este servicio?')) {
                 try {
-                    const response = await fetch(`${API_URL}?sheet=DETALLES%20DE%20SERVICIOS`, {
+                    // Buscar el servicio por su __sheetRow
+                    const service = allServices.find(item => item.__sheetRow === parseInt(serviceId));
+                    
+                    if (!service) {
+                        alert('❌ Servicio no encontrado');
+                        return;
+                    }
+                    
+                    // Construir el DELETE con los criterios exactos
+                    const queryParams = new URLSearchParams({
+                        'sheet': 'DETALLES DE SERVICIOS',
+                        'FECHA': service['FECHA'] || '',
+                        'UNIDAD': service['UNIDAD'] || '',
+                        'TEMA': service['TEMA'] || ''
+                    });
+                    
+                    console.log('Eliminando servicio:', service);
+                    const response = await fetch(`${API_URL}?${queryParams.toString()}`, {
                         method: 'DELETE',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id: serviceId })
+                        headers: { 'Content-Type': 'application/json' }
                     });
 
                     if (response.ok) {
-                        alert('✓ Servicio eliminado');
+                        alert('✓ Servicio eliminado correctamente');
                         loadServices();
                     } else {
-                        throw new Error('Error al eliminar');
+                        const result = await response.json();
+                        throw new Error(result.message || 'Error al eliminar');
                     }
                 } catch (error) {
-                    console.error('Error:', error);
-                    alert('Error al eliminar el servicio');
+                    console.error('Error al eliminar:', error);
+                    alert('❌ Error al eliminar: ' + error.message);
                 }
             }
         }
