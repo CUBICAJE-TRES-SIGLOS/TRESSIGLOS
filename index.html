@@ -824,6 +824,29 @@
 			return Object.values(row).some((value) => (value || "").toString().toLowerCase().includes(q));
 		}
 
+		function parseFechaForSort(value) {
+			const raw = (value || "").toString().trim();
+			if (!raw) return 0;
+
+			const direct = Date.parse(raw);
+			if (!Number.isNaN(direct)) return direct;
+
+			const normalized = raw.replace(/\//g, "-");
+			const parts = normalized.split("-");
+			if (parts.length === 3) {
+				const [a, b, c] = parts;
+				if (a.length === 4) {
+					const ymd = Date.parse(`${a}-${b.padStart(2, "0")}-${c.padStart(2, "0")}`);
+					if (!Number.isNaN(ymd)) return ymd;
+				}
+
+				const dmy = Date.parse(`${c}-${b.padStart(2, "0")}-${a.padStart(2, "0")}`);
+				if (!Number.isNaN(dmy)) return dmy;
+			}
+
+			return 0;
+		}
+
 		function normalizeText(value) {
 			return (value || "").toString().trim().toLowerCase();
 		}
@@ -999,7 +1022,7 @@
 
 			detallesTbody.innerHTML = rows
 				.slice()
-				.reverse()
+				.sort((a, b) => parseFechaForSort(b["FECHA"]) - parseFechaForSort(a["FECHA"]))
 				.map((row) => {
 					const fecha = escapeHtml(row["FECHA"]);
 					const unidad = escapeHtml(row["UNIDAD"]);
