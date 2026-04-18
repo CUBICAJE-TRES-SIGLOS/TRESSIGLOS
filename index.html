@@ -218,6 +218,23 @@
 			background: #fff;
 		}
 
+		.tema-input {
+			min-height: 46px;
+			font-size: 1rem;
+		}
+
+		.unit-info {
+			font-size: 0.82rem;
+			color: #35557a;
+			background: #eef5ff;
+			border: 1px dashed #b9d2f3;
+			border-radius: 8px;
+			padding: 8px 10px;
+			min-height: 36px;
+			display: flex;
+			align-items: center;
+		}
+
 		input:focus,
 		select:focus {
 			outline: 2px solid #cde1ff;
@@ -461,11 +478,12 @@
 						</div>
 						<div class="field">
 							<label for="unidad">Unidad</label>
-							<input id="unidad" name="unidad" type="text" placeholder="Ej. U-102" required />
+							<input id="unidad" name="unidad" type="text" list="unidadDatalist" placeholder="Ej. U-102" autocomplete="off" required />
+							<div class="unit-info" id="unidadInfo">Escribe Economico o Unidad para ver sugerencias.</div>
 						</div>
 						<div class="field">
 							<label for="tema">Tema</label>
-							<input id="tema" name="tema" type="text" placeholder="Describe el servicio" required />
+							<input class="tema-input" id="tema" name="tema" type="text" list="temaDatalist" placeholder="Describe el servicio" autocomplete="off" required />
 						</div>
 						<div class="field">
 							<label for="comentario">Comentario</label>
@@ -479,6 +497,8 @@
 							</select>
 						</div>
 					</div>
+					<datalist id="unidadDatalist"></datalist>
+					<datalist id="temaDatalist"></datalist>
 					<div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
 						<button type="submit" class="btn btn-primary">Guardar servicio</button>
 						<button type="button" class="btn btn-secondary" id="cancelFormBtn">Cancelar</button>
@@ -586,10 +606,16 @@
 		const cancelFormBtn = document.getElementById("cancelFormBtn");
 		const detalleFormWrap = document.getElementById("detalleFormWrap");
 		const detalleForm = document.getElementById("detalleForm");
+		const fechaInput = document.getElementById("fecha");
 		const detallesTbody = document.getElementById("detallesTbody");
 		const datosTbody = document.getElementById("datosTbody");
 		const searchServicios = document.getElementById("searchServicios");
 		const searchUnidades = document.getElementById("searchUnidades");
+		const unidadInput = document.getElementById("unidad");
+		const temaInput = document.getElementById("tema");
+		const unidadInfo = document.getElementById("unidadInfo");
+		const unidadDatalist = document.getElementById("unidadDatalist");
+		const temaDatalist = document.getElementById("temaDatalist");
 		const editModal = document.getElementById("editModal");
 		const editModalTitle = document.getElementById("editModalTitle");
 		const editFields = document.getElementById("editFields");
@@ -635,9 +661,22 @@
 			return `field-${column.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 		}
 
+		function getTodayLocalISO() {
+			const now = new Date();
+			const tzOffset = now.getTimezoneOffset() * 60000;
+			return new Date(now.getTime() - tzOffset).toISOString().slice(0, 10);
+		}
+
+		function ensureDefaultFecha() {
+			if (!fechaInput.value) {
+				fechaInput.value = getTodayLocalISO();
+			}
+		}
+
 		function openForm(open) {
 			detalleFormWrap.classList.toggle("open", open);
 			toggleFormBtn.textContent = open ? "Ocultar formulario" : "Nuevo servicio";
+			if (open) ensureDefaultFecha();
 		}
 
 		toggleFormBtn.addEventListener("click", () => {
@@ -647,6 +686,7 @@
 
 		cancelFormBtn.addEventListener("click", () => {
 			detalleForm.reset();
+			ensureDefaultFecha();
 			openForm(false);
 		});
 
@@ -720,14 +760,17 @@
 			if (!row) return;
 
 			if (type === "servicio") {
+				const criteria = pickCriteria(row, ["FECHA", "UNIDAD", "TEMA"]);
+				if (!Object.keys(criteria).length) {
+					alert("No se puede editar este servicio: faltan datos clave para ubicar la fila.");
+					return;
+				}
+
 				editContext = {
 					sheet: SHEET_SERVICIOS,
 					columns: SERVICIO_COLUMNS,
-					criteria: {
-						"FECHA": row["FECHA"],
-						"UNIDAD": row["UNIDAD"],
-						"TEMA": row["TEMA"],
-					},
+					criteria,
+					originalRow: { ...row },
 				};
 				editModalTitle.textContent = "Editar detalle de servicio";
 				buildEditFormFields(SERVICIO_COLUMNS, row, type);
@@ -740,12 +783,17 @@
 				return;
 			}
 
+			const criteria = pickCriteria(row, ["ECONOMICO", "UNIDAD", "PLACAS", "NIV"]);
+			if (!Object.keys(criteria).length) {
+				alert("No se puede editar esta unidad: faltan datos clave para ubicar la fila.");
+				return;
+			}
+
 			editContext = {
 				sheet: SHEET_UNIDADES,
 				columns: UNIDAD_COLUMNS,
-				criteria: {
-					"ECONOMICO": row["ECONOMICO"],
-				},
+				criteria,
+				originalRow: { ...row },
 			};
 			editModalTitle.textContent = "Editar datos de unidad";
 			buildEditFormFields(UNIDAD_COLUMNS, row, type);
@@ -774,6 +822,73 @@
 			if (!query) return true;
 			const q = query.toLowerCase();
 			return Object.values(row).some((value) => (value || "").toString().toLowerCase().includes(q));
+		}
+
+		function normalizeText(value) {
+			return (value || "").toString().trim().toLowerCase();
+		}
+
+		function findUnidadMatch(query) {
+			const q = normalizeText(query);
+			if (!q) return null;
+
+			return unidadesRows.find((row) => normalizeText(row["ECONOMICO"]) === q || normalizeText(row["UNIDAD"]) === q) || null;
+		}
+
+		function findLatestTemaByUnidad(query) {
+			const q = normalizeText(query);
+			if (!q) return "";
+
+			const last = [...serviciosRows].reverse().find((row) => normalizeText(row["UNIDAD"]) === q);
+			return last ? (last["TEMA"] || "").toString().trim() : "";
+		}
+
+		function refreshUnidadInfo() {
+			const match = findUnidadMatch(unidadInput.value);
+			if (!match) {
+				unidadInfo.textContent = "Escribe Economico o Unidad para ver sugerencias.";
+				return;
+			}
+
+			const eco = (match["ECONOMICO"] || "").toString().trim();
+			const uni = (match["UNIDAD"] || "").toString().trim();
+			const modelo = (match["MODELO"] || "").toString().trim();
+			const placas = (match["PLACAS"] || "").toString().trim();
+			unidadInfo.textContent = `Economico: ${eco} | Unidad: ${uni} | Modelo: ${modelo} | Placas: ${placas}`;
+		}
+
+		function updateAutocompleteSources() {
+			const unidadOptions = [];
+			const unidadSet = new Set();
+			unidadesRows.forEach((row) => {
+				const eco = (row["ECONOMICO"] || "").toString().trim();
+				const uni = (row["UNIDAD"] || "").toString().trim();
+
+				if (eco && !unidadSet.has(`eco:${eco.toLowerCase()}`)) {
+					unidadSet.add(`eco:${eco.toLowerCase()}`);
+					unidadOptions.push(`<option value="${escapeHtml(eco)}">${escapeHtml(uni || eco)}</option>`);
+				}
+
+				if (uni && !unidadSet.has(`uni:${uni.toLowerCase()}`)) {
+					unidadSet.add(`uni:${uni.toLowerCase()}`);
+					unidadOptions.push(`<option value="${escapeHtml(uni)}">${escapeHtml(eco || uni)}</option>`);
+				}
+			});
+
+			unidadDatalist.innerHTML = unidadOptions.join("");
+
+			const temaSet = new Set();
+			const temaOptions = [];
+			serviciosRows.forEach((row) => {
+				const tema = (row["TEMA"] || "").toString().trim();
+				if (tema && !temaSet.has(tema.toLowerCase())) {
+					temaSet.add(tema.toLowerCase());
+					temaOptions.push(`<option value="${escapeHtml(tema)}"></option>`);
+				}
+			});
+
+			temaDatalist.innerHTML = temaOptions.join("");
+			refreshUnidadInfo();
 		}
 
 		function queryWithSheet(sheetName, criteria) {
@@ -822,7 +937,13 @@
 			});
 
 			if (!response.ok) {
-				throw new Error("No se pudo actualizar en SheetDB.");
+				const detail = await response.text().catch(() => "");
+				throw new Error(`No se pudo actualizar en SheetDB. Status ${response.status}. ${detail}`.trim());
+			}
+
+			const result = await response.json().catch(() => ({}));
+			if (typeof result.updated === "number" && result.updated < 1) {
+				throw new Error("SheetDB no actualizo ningun registro.");
 			}
 		}
 
@@ -982,6 +1103,7 @@
 
 				renderServicios();
 				renderUnidades();
+				updateAutocompleteSources();
 			} catch (error) {
 				console.error(error);
 				showErrorRows("No se pudo conectar con SheetDB. Revisa el ID, nombres de hojas y conexion a internet.");
@@ -994,6 +1116,16 @@
 
 		searchUnidades.addEventListener("input", () => {
 			renderUnidades();
+		});
+
+		unidadInput.addEventListener("input", () => {
+			refreshUnidadInfo();
+			if (!temaInput.value.trim()) {
+				const suggestedTema = findLatestTemaByUnidad(unidadInput.value);
+				if (suggestedTema) {
+					temaInput.value = suggestedTema;
+				}
+			}
 		});
 
 		async function handleEditServicio(rowId) {
@@ -1106,14 +1238,30 @@
 				updated[column] = (formData.get(column) || "").toString().trim();
 			});
 
-			try {
+			try { 
 				saveEditBtn.disabled = true;
+				const beforeRows = await fetchSheet(editContext.sheet);
+				const beforeOriginalCount = countRowMatches(beforeRows, editContext.originalRow, editContext.columns);
+
+				if (beforeOriginalCount < 1) {
+					throw new Error("Edicion cancelada: la fila original ya no existe en la base.");
+				}
+
 				await updateRowsInSheet(editContext.sheet, editContext.criteria, updated);
+
+				const afterRows = await fetchSheet(editContext.sheet);
+				const afterUpdatedCount = countRowMatches(afterRows, updated, editContext.columns);
+				const afterOriginalCount = countRowMatches(afterRows, editContext.originalRow, editContext.columns);
+
+				if (afterUpdatedCount < 1 && beforeOriginalCount > 0) {
+					throw new Error("La edicion no se reflejo en la base de datos.");
+				}
+
 				closeEditModal();
 				await loadAllData();
 			} catch (error) {
 				console.error(error);
-				alert("No se pudo guardar la edicion en SheetDB.");
+				alert("No se pudo guardar la edicion completa en SheetDB.");
 			} finally {
 				saveEditBtn.disabled = false;
 			}
@@ -1153,9 +1301,12 @@
 				alert("No se pudo guardar el servicio en SheetDB. Revisa nombres de columnas y permisos.");
 			} finally {
 				toggleFormBtn.disabled = false;
+				unidadInfo.textContent = "Escribe Economico o Unidad para ver sugerencias.";
+				ensureDefaultFecha();
 			}
 		});
 
+		ensureDefaultFecha();
 		loadAllData();
 	</script>
 </body>
