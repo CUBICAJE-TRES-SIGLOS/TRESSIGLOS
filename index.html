@@ -483,7 +483,7 @@
 						</div>
 						<div class="field">
 							<label for="tema">Tema</label>
-							<input class="tema-input" id="tema" name="tema" type="text" list="temaDatalist" placeholder="Describe el servicio" autocomplete="off" required />
+							<input class="tema-input" id="tema" name="tema" type="text" placeholder="Describe el servicio" autocomplete="off" required />
 						</div>
 						<div class="field">
 							<label for="comentario">Comentario</label>
@@ -498,7 +498,6 @@
 						</div>
 					</div>
 					<datalist id="unidadDatalist"></datalist>
-					<datalist id="temaDatalist"></datalist>
 					<div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
 						<button type="submit" class="btn btn-primary">Guardar servicio</button>
 						<button type="button" class="btn btn-secondary" id="cancelFormBtn">Cancelar</button>
@@ -615,7 +614,6 @@
 		const temaInput = document.getElementById("tema");
 		const unidadInfo = document.getElementById("unidadInfo");
 		const unidadDatalist = document.getElementById("unidadDatalist");
-		const temaDatalist = document.getElementById("temaDatalist");
 		const editModal = document.getElementById("editModal");
 		const editModalTitle = document.getElementById("editModalTitle");
 		const editFields = document.getElementById("editFields");
@@ -858,14 +856,6 @@
 			return unidadesRows.find((row) => normalizeText(row["ECONOMICO"]) === q || normalizeText(row["UNIDAD"]) === q) || null;
 		}
 
-		function findLatestTemaByUnidad(query) {
-			const q = normalizeText(query);
-			if (!q) return "";
-
-			const last = [...serviciosRows].reverse().find((row) => normalizeText(row["UNIDAD"]) === q);
-			return last ? (last["TEMA"] || "").toString().trim() : "";
-		}
-
 		function refreshUnidadInfo() {
 			const match = findUnidadMatch(unidadInput.value);
 			if (!match) {
@@ -882,35 +872,17 @@
 
 		function updateAutocompleteSources() {
 			const unidadOptions = [];
-			const unidadSet = new Set();
+			const economicoSet = new Set();
 			unidadesRows.forEach((row) => {
 				const eco = (row["ECONOMICO"] || "").toString().trim();
-				const uni = (row["UNIDAD"] || "").toString().trim();
 
-				if (eco && !unidadSet.has(`eco:${eco.toLowerCase()}`)) {
-					unidadSet.add(`eco:${eco.toLowerCase()}`);
-					unidadOptions.push(`<option value="${escapeHtml(eco)}">${escapeHtml(uni || eco)}</option>`);
-				}
-
-				if (uni && !unidadSet.has(`uni:${uni.toLowerCase()}`)) {
-					unidadSet.add(`uni:${uni.toLowerCase()}`);
-					unidadOptions.push(`<option value="${escapeHtml(uni)}">${escapeHtml(eco || uni)}</option>`);
+				if (eco && !economicoSet.has(eco.toLowerCase())) {
+					economicoSet.add(eco.toLowerCase());
+					unidadOptions.push(`<option value="${escapeHtml(eco)}"></option>`);
 				}
 			});
 
 			unidadDatalist.innerHTML = unidadOptions.join("");
-
-			const temaSet = new Set();
-			const temaOptions = [];
-			serviciosRows.forEach((row) => {
-				const tema = (row["TEMA"] || "").toString().trim();
-				if (tema && !temaSet.has(tema.toLowerCase())) {
-					temaSet.add(tema.toLowerCase());
-					temaOptions.push(`<option value="${escapeHtml(tema)}"></option>`);
-				}
-			});
-
-			temaDatalist.innerHTML = temaOptions.join("");
 			refreshUnidadInfo();
 		}
 
@@ -1157,12 +1129,6 @@
 
 		unidadInput.addEventListener("input", () => {
 			refreshUnidadInfo();
-			if (!temaInput.value.trim()) {
-				const suggestedTema = findLatestTemaByUnidad(unidadInput.value);
-				if (suggestedTema) {
-					temaInput.value = suggestedTema;
-				}
-			}
 		});
 
 		async function handleEditServicio(rowId) {
