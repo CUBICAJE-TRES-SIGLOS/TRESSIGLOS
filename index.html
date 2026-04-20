@@ -460,6 +460,7 @@
 		<nav class="tabs" aria-label="Pestanas principales">
 			<button class="tab-btn active" data-tab="detalles">Detalles de servicios</button>
 			<button class="tab-btn" data-tab="datos">Datos de unidades</button>
+			<button class="tab-btn" data-tab="taller">Unidades en taller</button>
 		</nav>
 
 		<section class="panel active" id="panel-detalles">
@@ -561,6 +562,65 @@
 				</table>
 			</div>
 		</section>
+		<section class="panel" id="panel-taller">
+			<div class="actions">
+				<h2>Unidades en taller</h2>
+				<input class="search-box" id="searchTaller" type="text" placeholder="Buscar en unidades en taller..." />
+				<button class="btn btn-primary" id="toggleTallerFormBtn">Nueva entrada</button>
+			</div>
+
+			<div class="form-wrap" id="tallerFormWrap">
+				<form id="tallerForm">
+					<div class="grid">
+						<div class="field">
+							<label for="taller-lugar">Lugar taller</label>
+							<input id="taller-lugar" name="Lugar taller" type="text" placeholder="Ej. Taller Norte" required />
+						</div>
+						<div class="field">
+							<label for="taller-economico">Economico</label>
+							<input id="taller-economico" name="economico" type="text" placeholder="Ej. U-102" autocomplete="off" required />
+						</div>
+						<div class="field">
+							<label for="taller-tema">Tema</label>
+							<input id="taller-tema" name="tema" type="text" placeholder="Describe el problema" required />
+						</div>
+						<div class="field">
+							<label for="taller-comentario">Comentario</label>
+							<input id="taller-comentario" name="comentario" type="text" placeholder="Comentario breve" />
+						</div>
+						<div class="field">
+							<label for="taller-estatus">Estatus</label>
+							<select id="taller-estatus" name="estatus" required>
+								<option value="Pendiente">Pendiente</option>
+								<option value="Resuelto">Resuelto</option>
+							</select>
+						</div>
+					</div>
+					<div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+						<button type="submit" class="btn btn-primary">Guardar entrada</button>
+						<button type="button" class="btn btn-secondary" id="cancelTallerFormBtn">Cancelar</button>
+					</div>
+				</form>
+			</div>
+
+			<div class="table-wrap">
+				<table aria-label="Tabla de unidades en taller">
+					<thead>
+						<tr>
+							<th>Lugar taller</th>
+							<th>Economico</th>
+							<th>Tema</th>
+							<th>Comentario</th>
+							<th>Estatus</th>
+							<th>Accion</th>
+						</tr>
+					</thead>
+					<tbody id="tallerTbody">
+						<tr><td colspan="6" class="empty">Cargando unidades en taller...</td></tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
 	</main>
 
 	<div class="modal" id="editModal" aria-hidden="true">
@@ -585,19 +645,17 @@
 		const tabButtons = document.querySelectorAll(".tab-btn");
 		const panelDetalles = document.getElementById("panel-detalles");
 		const panelDatos = document.getElementById("panel-datos");
+		const panelTaller = document.getElementById("panel-taller");
+		const allPanels = [panelDetalles, panelDatos, panelTaller];
 
 		tabButtons.forEach((button) => {
 			button.addEventListener("click", () => {
 				tabButtons.forEach((btn) => btn.classList.remove("active"));
 				button.classList.add("active");
-
-				if (button.dataset.tab === "detalles") {
-					panelDetalles.classList.add("active");
-					panelDatos.classList.remove("active");
-				} else {
-					panelDatos.classList.add("active");
-					panelDetalles.classList.remove("active");
-				}
+				allPanels.forEach((p) => p.classList.remove("active"));
+				if (button.dataset.tab === "detalles") panelDetalles.classList.add("active");
+				else if (button.dataset.tab === "datos") panelDatos.classList.add("active");
+				else if (button.dataset.tab === "taller") panelTaller.classList.add("active");
 			});
 		});
 
@@ -614,6 +672,12 @@
 		const temaInput = document.getElementById("tema");
 		const unidadInfo = document.getElementById("unidadInfo");
 		const unidadDatalist = document.getElementById("unidadDatalist");
+		const searchTaller = document.getElementById("searchTaller");
+		const toggleTallerFormBtn = document.getElementById("toggleTallerFormBtn");
+		const cancelTallerFormBtn = document.getElementById("cancelTallerFormBtn");
+		const tallerFormWrap = document.getElementById("tallerFormWrap");
+		const tallerForm = document.getElementById("tallerForm");
+		const tallerTbody = document.getElementById("tallerTbody");
 		const editModal = document.getElementById("editModal");
 		const editModalTitle = document.getElementById("editModalTitle");
 		const editFields = document.getElementById("editFields");
@@ -626,8 +690,10 @@
 		const SHEETDB_URL = `https://sheetdb.io/api/v1/${SHEETDB_ID}`;
 		const SHEET_UNIDADES = "UNIDADES TRES SIGLOS";
 		const SHEET_SERVICIOS = "DETALLES DE SERVICIOS";
+		const SHEET_TALLER = "unidades en taller";
 
 		const SERVICIO_COLUMNS = ["FECHA", "UNIDAD", "TEMA", "COMENTARIO", "ESTATUS"];
+		const TALLER_COLUMNS = ["Lugar taller", "economico", "tema", "comentario", "estatus"];
 		const UNIDAD_COLUMNS = [
 			"ECONOMICO",
 			"UNIDAD",
@@ -647,6 +713,7 @@
 
 		let serviciosRows = [];
 		let unidadesRows = [];
+		let tallerRows = [];
 		let rowCounter = 0;
 		let editContext = null;
 
@@ -730,7 +797,20 @@
 					const value = escapeHtml(row[column] || "");
 					const id = formatFieldId(column);
 
-					if (type === "servicio" && column === "ESTATUS") {
+						if ((type === "taller") && column === "estatus") {
+					const current = (row[column] || "").toLowerCase();
+					return `
+						<div class="field">
+							<label for="${id}">${escapeHtml(column)}</label>
+							<select id="${id}" name="${escapeHtml(column)}" required>
+								<option value="Pendiente" ${current === "pendiente" ? "selected" : ""}>Pendiente</option>
+								<option value="Resuelto" ${current === "resuelto" ? "selected" : ""}>Resuelto</option>
+							</select>
+						</div>
+					`;
+				}
+
+				if (type === "servicio" && column === "ESTATUS") {
 						const current = (row[column] || "").toLowerCase();
 						return `
 							<div class="field">
@@ -1091,13 +1171,15 @@
 		function showErrorRows(message) {
 			detallesTbody.innerHTML = `<tr><td colspan="6" class="empty">${escapeHtml(message)}</td></tr>`;
 			datosTbody.innerHTML = `<tr><td colspan="15" class="empty">${escapeHtml(message)}</td></tr>`;
+			tallerTbody.innerHTML = `<tr><td colspan="6" class="empty">${escapeHtml(message)}</td></tr>`;
 		}
 
 		async function loadAllData() {
 			try {
-				const [servicios, unidades] = await Promise.all([
+				const [servicios, unidades, taller] = await Promise.all([
 					fetchSheet(SHEET_SERVICIOS),
 					fetchSheet(SHEET_UNIDADES),
+					fetchSheet(SHEET_TALLER),
 				]);
 
 				serviciosRows = servicios.map((row) => ({
@@ -1110,8 +1192,14 @@
 					__id: createLocalId(),
 				}));
 
+				tallerRows = taller.map((row) => ({
+					...normalizeRow(row, TALLER_COLUMNS),
+					__id: createLocalId(),
+				}));
+
 				renderServicios();
 				renderUnidades();
+				renderTaller();
 				updateAutocompleteSources();
 			} catch (error) {
 				console.error(error);
@@ -1125,6 +1213,123 @@
 
 		searchUnidades.addEventListener("input", () => {
 			renderUnidades();
+		});
+
+		searchTaller.addEventListener("input", () => {
+			renderTaller();
+		});
+
+		function openTallerForm(open) {
+			tallerFormWrap.classList.toggle("open", open);
+			toggleTallerFormBtn.textContent = open ? "Ocultar formulario" : "Nueva entrada";
+		}
+
+		toggleTallerFormBtn.addEventListener("click", () => {
+			openTallerForm(!tallerFormWrap.classList.contains("open"));
+		});
+
+		cancelTallerFormBtn.addEventListener("click", () => {
+			tallerForm.reset();
+			openTallerForm(false);
+		});
+
+		function renderTaller() {
+			const query = (searchTaller.value || "").trim().toLowerCase();
+			const rows = tallerRows.filter((row) => rowMatchesSearch(row, query));
+
+			if (!rows.length) {
+				tallerTbody.innerHTML = '<tr><td colspan="6" class="empty">No hay entradas que coincidan con la busqueda.</td></tr>';
+				return;
+			}
+
+			tallerTbody.innerHTML = rows.map((row) => {
+				const lugar = escapeHtml(row["Lugar taller"]);
+				const eco = escapeHtml(row["economico"]);
+				const tema = escapeHtml(row["tema"]);
+				const comentario = escapeHtml(row["comentario"]);
+				const estatus = escapeHtml(row["estatus"]);
+				const id = escapeHtml(row.__id);
+				const rowClass = statusRowClass(row["estatus"]);
+				return `
+					<tr class="${rowClass}">
+						<td>${lugar}</td>
+						<td>${eco}</td>
+						<td>${tema}</td>
+						<td>${comentario}</td>
+						<td><span class="${statusClass(estatus)}">${estatus || "Sin estatus"}</span></td>
+						<td>
+							<button class="btn btn-secondary btn-small action-btn" data-action="edit-taller" data-id="${id}">Editar</button>
+							<button class="btn btn-danger btn-small action-btn" data-action="delete-taller" data-id="${id}">Eliminar</button>
+						</td>
+					</tr>
+				`;
+			}).join("");
+		}
+
+		tallerTbody.addEventListener("click", async (event) => {
+			const button = event.target.closest("button[data-action]");
+			if (!button) return;
+			const action = button.dataset.action;
+			const rowId = button.dataset.id;
+			if (action === "edit-taller") {
+				const row = tallerRows.find((item) => item.__id === rowId);
+				if (!row) return;
+				const criteria = pickCriteria(row, ["Lugar taller", "economico", "tema"]);
+				if (!Object.keys(criteria).length) { alert("No se puede editar: faltan datos clave."); return; }
+				editContext = { sheet: SHEET_TALLER, columns: TALLER_COLUMNS, criteria, originalRow: { ...row } };
+				editModalTitle.textContent = "Editar unidad en taller";
+				buildEditFormFields(TALLER_COLUMNS, row, "taller");
+				openEditModal();
+			}
+			if (action === "delete-taller") {
+				const row = tallerRows.find((item) => item.__id === rowId);
+				if (!row) return;
+				const ok = confirm(`Eliminar entrada de ${row["economico"]} del taller?`);
+				if (!ok) return;
+				const criteria = pickCriteria(row, ["Lugar taller", "economico", "tema"]);
+				if (!Object.keys(criteria).length) { alert("No se puede eliminar: faltan datos clave."); return; }
+				try {
+					const beforeRows = await fetchSheet(SHEET_TALLER);
+					const beforeCount = countRowMatches(beforeRows, row, TALLER_COLUMNS);
+					await deleteRowsInSheet(SHEET_TALLER, criteria);
+					const afterRows = await fetchSheet(SHEET_TALLER);
+					const afterCount = countRowMatches(afterRows, row, TALLER_COLUMNS);
+					if (afterCount >= beforeCount) throw new Error("La fila no se elimino de la base de datos.");
+					await loadAllData();
+				} catch (error) {
+					console.error(error);
+					alert("No se pudo eliminar la entrada en SheetDB.");
+				}
+			}
+		});
+
+		tallerForm.addEventListener("submit", async (event) => {
+			event.preventDefault();
+			const formData = new FormData(tallerForm);
+			const record = {
+				"Lugar taller": (formData.get("Lugar taller") || "").toString().trim(),
+				"economico": (formData.get("economico") || "").toString().trim(),
+				"tema": (formData.get("tema") || "").toString().trim(),
+				"comentario": (formData.get("comentario") || "").toString().trim(),
+				"estatus": (formData.get("estatus") || "").toString().trim(),
+			};
+			try {
+				toggleTallerFormBtn.disabled = true;
+				const response = await fetch(`${SHEETDB_URL}?sheet=${encodeURIComponent(SHEET_TALLER)}`, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ data: [record] }),
+				});
+				if (!response.ok) throw new Error("No se pudo guardar en SheetDB.");
+				tallerForm.reset();
+				openTallerForm(false);
+				await loadAllData();
+			} catch (error) {
+				console.error(error);
+				alert("No se pudo guardar la entrada en SheetDB.");
+			} finally {
+				toggleTallerFormBtn.disabled = false;
+			}
 		});
 
 		unidadInput.addEventListener("input", () => {
