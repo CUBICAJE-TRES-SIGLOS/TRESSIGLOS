@@ -1134,7 +1134,13 @@
 
 			detallesTbody.innerHTML = rows
 				.slice()
-				.sort((a, b) => parseFechaForSort(b["FECHA"]) - parseFechaForSort(a["FECHA"]))
+				.sort((a, b) => {
+					const isResuelto = (v) => (v || "").toLowerCase() === "resuelto";
+					const aR = isResuelto(a["ESTATUS"]);
+					const bR = isResuelto(b["ESTATUS"]);
+					if (aR !== bR) return aR ? 1 : -1;
+					return parseFechaForSort(b["FECHA"]) - parseFechaForSort(a["FECHA"]);
+				})
 				.map((row) => {
 					const fecha = escapeHtml(row["FECHA"]);
 					const unidad = escapeHtml(row["UNIDAD"]);
