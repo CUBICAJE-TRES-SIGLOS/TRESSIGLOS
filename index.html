@@ -301,13 +301,19 @@
 		.services-table tr.row-pendiente .col-comentario,
 		.services-table tr.row-pendiente .col-estatus,
 		.services-table tr.row-pendiente .col-accion {
-			background: #fff4df;
+			background: #ffd8a8;
+		}
+
+		.services-table tr.row-en-proceso .col-comentario,
+		.services-table tr.row-en-proceso .col-estatus,
+		.services-table tr.row-en-proceso .col-accion {
+			background: #fff3a3;
 		}
 
 		.services-table tr.row-resuelto .col-comentario,
 		.services-table tr.row-resuelto .col-estatus,
 		.services-table tr.row-resuelto .col-accion {
-			background: #e8f8ef;
+			background: #bff0c9;
 		}
 
 		th,
@@ -408,21 +414,33 @@
 		}
 
 		.status-pendiente {
-			background: #fff2d8;
-			color: var(--warn);
+			background: #ffbf66;
+			color: #7c2d12;
+			border: 1px solid #fb923c;
+		}
+
+		.status-en-proceso {
+			background: #ffe55c;
+			color: #713f12;
+			border: 1px solid #eab308;
 		}
 
 		.status-resuelto {
-			background: #ddf5e8;
-			color: var(--ok);
+			background: #86efac;
+			color: #14532d;
+			border: 1px solid #22c55e;
 		}
 
 		.row-pendiente td {
-			background: #fff4df;
+			background: #ffe8c2;
+		}
+
+		.row-en-proceso td {
+			background: #fff8bf;
 		}
 
 		.row-resuelto td {
-			background: #e8f8ef;
+			background: #dcfce7;
 		}
 
 		.empty {
@@ -494,6 +512,7 @@
 							<label for="estatus">Estatus</label>
 							<select id="estatus" name="estatus" required>
 								<option value="Pendiente">Pendiente</option>
+								<option value="En proceso">En proceso</option>
 								<option value="Resuelto">Resuelto</option>
 							</select>
 						</div>
@@ -592,6 +611,7 @@
 							<label for="taller-estatus">Estatus</label>
 							<select id="taller-estatus" name="estatus" required>
 								<option value="Pendiente">Pendiente</option>
+								<option value="En proceso">En proceso</option>
 								<option value="Resuelto">Resuelto</option>
 							</select>
 						</div>
@@ -758,6 +778,9 @@
 		function statusClass(value) {
 			const v = (value || "").toLowerCase();
 			if (v === "pendiente") return "status status-pendiente";
+			if (v === "en proceso" || v === "en proceso-taller" || v === "proceso") {
+				return "status status-en-proceso";
+			}
 			if (v === "resuelto") return "status status-resuelto";
 			return "status";
 		}
@@ -765,6 +788,9 @@
 		function statusRowClass(value) {
 			const v = (value || "").toLowerCase();
 			if (v === "pendiente") return "row-pendiente";
+			if (v === "en proceso" || v === "en proceso-taller" || v === "proceso") {
+				return "row-en-proceso";
+			}
 			if (v === "resuelto") return "row-resuelto";
 			return "";
 		}
@@ -804,6 +830,7 @@
 							<label for="${id}">${escapeHtml(column)}</label>
 							<select id="${id}" name="${escapeHtml(column)}" required>
 								<option value="Pendiente" ${current === "pendiente" ? "selected" : ""}>Pendiente</option>
+								<option value="En proceso" ${(current === "en proceso" || current === "en proceso-taller" || current === "proceso") ? "selected" : ""}>En proceso</option>
 								<option value="Resuelto" ${current === "resuelto" ? "selected" : ""}>Resuelto</option>
 							</select>
 						</div>
@@ -817,6 +844,7 @@
 								<label for="${id}">${escapeHtml(column)}</label>
 								<select id="${id}" name="${escapeHtml(column)}" required>
 									<option value="Pendiente" ${current === "pendiente" ? "selected" : ""}>Pendiente</option>
+									<option value="En proceso" ${(current === "en proceso" || current === "en proceso-taller" || current === "proceso") ? "selected" : ""}>En proceso</option>
 									<option value="Resuelto" ${current === "resuelto" ? "selected" : ""}>Resuelto</option>
 								</select>
 							</div>
