@@ -248,6 +248,27 @@
 			background: var(--card);
 		}
 
+		.insumos-grid {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 14px;
+			align-items: start;
+		}
+
+		.insumos-title {
+			padding: 12px 12px 0;
+			font-weight: 700;
+			color: #17304f;
+		}
+
+		.insumos-head {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 8px;
+			padding: 8px 10px 0;
+		}
+
 		table {
 			width: 100%;
 			border-collapse: collapse;
@@ -479,6 +500,7 @@
 			<button class="tab-btn active" data-tab="detalles">Detalles de servicios</button>
 			<button class="tab-btn" data-tab="datos">Datos de unidades</button>
 			<button class="tab-btn" data-tab="taller">Unidades en taller</button>
+			<button class="tab-btn" data-tab="insumos">Insumos y solicitud</button>
 		</nav>
 
 		<section class="panel active" id="panel-detalles">
@@ -568,7 +590,7 @@
 							<th class="hidden-unit-col">Poliza de seguro</th>
 							<th class="hidden-unit-col">Inciso</th>
 							<th class="hidden-unit-col">Tipo</th>
-							<th>kilometraje del antes del</th>
+							<th>ultimo cambio de balatas</th>
 							<th>ultimo cambio de llantas</th>
 							<th>Accion</th>
 						</tr>
@@ -641,6 +663,109 @@
 				</table>
 			</div>
 		</section>
+
+		<section class="panel" id="panel-insumos">
+			<div class="actions">
+				<h2>Insumos y solicitud</h2>
+			</div>
+
+			<div class="insumos-grid">
+				<div class="table-wrap">
+					<div class="insumos-head">
+						<div class="insumos-title">Inventario de bodega</div>
+						<button class="btn btn-primary btn-small" id="toggleInventarioFormBtn" type="button">Agregar</button>
+					</div>
+					<div class="form-wrap" id="inventarioFormWrap" style="margin: 10px;">
+						<form id="inventarioForm">
+							<div class="grid">
+								<div class="field">
+									<label for="inventario-codigo">Codigo</label>
+									<input id="inventario-codigo" name="codigo" type="text" required />
+								</div>
+								<div class="field">
+									<label for="inventario-producto">Producto</label>
+									<input id="inventario-producto" name="producto" type="text" required />
+								</div>
+								<div class="field">
+									<label for="inventario-cantidad">Cantidad</label>
+									<input id="inventario-cantidad" name="cantidad" type="text" required />
+								</div>
+							</div>
+							<div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+								<button type="submit" class="btn btn-primary">Guardar</button>
+								<button type="button" class="btn btn-secondary" id="cancelInventarioFormBtn">Cancelar</button>
+							</div>
+						</form>
+					</div>
+				<table aria-label="Tabla de inventario de bodega">
+					<thead>
+						<tr>
+							<th>Producto</th>
+							<th>Cantidad</th>
+						</tr>
+					</thead>
+					<tbody id="inventarioTbody">
+						<tr>
+							<td colspan="2" class="empty">Sin registros de inventario por ahora.</td>
+						</tr>
+					</tbody>
+					</table>
+				</div>
+
+				<div class="table-wrap">
+					<div class="insumos-head">
+						<div class="insumos-title">Solicitud de materiales y entrega</div>
+						<button class="btn btn-primary btn-small" id="toggleSolicitudFormBtn" type="button">Agregar</button>
+					</div>
+					<div class="form-wrap" id="solicitudFormWrap" style="margin: 10px;">
+						<form id="solicitudForm">
+							<div class="grid">
+								<div class="field">
+									<label for="solicitud-fecha">Fecha</label>
+									<input id="solicitud-fecha" name="Fecha" type="date" required />
+								</div>
+								<div class="field">
+									<label for="solicitud-solicitante">Solicitante</label>
+									<input id="solicitud-solicitante" name="Solicitante" type="text" required />
+								</div>
+								<div class="field">
+									<label for="solicitud-material">Material</label>
+									<input id="solicitud-material" name="Material" type="text" required />
+								</div>
+								<div class="field">
+									<label for="solicitud-cantidad">Cantidad solicitada</label>
+									<input id="solicitud-cantidad" name="Cantidad solicitada" type="text" required />
+								</div>
+								<div class="field">
+									<label for="solicitud-estatus">Estatus de entrega</label>
+									<input id="solicitud-estatus" name="Estatus de entrega" type="text" required />
+								</div>
+							</div>
+							<div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+								<button type="submit" class="btn btn-primary">Guardar</button>
+								<button type="button" class="btn btn-secondary" id="cancelSolicitudFormBtn">Cancelar</button>
+							</div>
+						</form>
+					</div>
+				<table aria-label="Tabla de solicitud de materiales y entrega">
+					<thead>
+						<tr>
+							<th>Fecha</th>
+							<th>Solicitante</th>
+							<th>Material</th>
+							<th>Cantidad solicitada</th>
+							<th>Estatus de entrega</th>
+						</tr>
+					</thead>
+					<tbody id="solicitudTbody">
+						<tr>
+							<td colspan="5" class="empty">Sin solicitudes registradas por ahora.</td>
+						</tr>
+					</tbody>
+					</table>
+				</div>
+			</div>
+		</section>
 	</main>
 
 	<div class="modal" id="editModal" aria-hidden="true">
@@ -666,7 +791,8 @@
 		const panelDetalles = document.getElementById("panel-detalles");
 		const panelDatos = document.getElementById("panel-datos");
 		const panelTaller = document.getElementById("panel-taller");
-		const allPanels = [panelDetalles, panelDatos, panelTaller];
+		const panelInsumos = document.getElementById("panel-insumos");
+		const allPanels = [panelDetalles, panelDatos, panelTaller, panelInsumos];
 
 		tabButtons.forEach((button) => {
 			button.addEventListener("click", () => {
@@ -676,6 +802,7 @@
 				if (button.dataset.tab === "detalles") panelDetalles.classList.add("active");
 				else if (button.dataset.tab === "datos") panelDatos.classList.add("active");
 				else if (button.dataset.tab === "taller") panelTaller.classList.add("active");
+				else if (button.dataset.tab === "insumos") panelInsumos.classList.add("active");
 			});
 		});
 
@@ -698,6 +825,16 @@
 		const tallerFormWrap = document.getElementById("tallerFormWrap");
 		const tallerForm = document.getElementById("tallerForm");
 		const tallerTbody = document.getElementById("tallerTbody");
+		const toggleInventarioFormBtn = document.getElementById("toggleInventarioFormBtn");
+		const cancelInventarioFormBtn = document.getElementById("cancelInventarioFormBtn");
+		const inventarioFormWrap = document.getElementById("inventarioFormWrap");
+		const inventarioForm = document.getElementById("inventarioForm");
+		const inventarioTbody = document.getElementById("inventarioTbody");
+		const toggleSolicitudFormBtn = document.getElementById("toggleSolicitudFormBtn");
+		const cancelSolicitudFormBtn = document.getElementById("cancelSolicitudFormBtn");
+		const solicitudFormWrap = document.getElementById("solicitudFormWrap");
+		const solicitudForm = document.getElementById("solicitudForm");
+		const solicitudTbody = document.getElementById("solicitudTbody");
 		const editModal = document.getElementById("editModal");
 		const editModalTitle = document.getElementById("editModalTitle");
 		const editFields = document.getElementById("editFields");
@@ -727,13 +864,15 @@
 			"POLIZA DE SEGURO",
 			"INCISO",
 			"TIPO",
-			"kilometraje del antes del",
+			"ultimo cambio de balatas",
 			"ultimo cambio de llantas",
 		];
 
 		let serviciosRows = [];
 		let unidadesRows = [];
 		let tallerRows = [];
+		let inventarioRows = [];
+		let solicitudRows = [];
 		let rowCounter = 0;
 		let editContext = null;
 
@@ -1190,7 +1329,7 @@
 					const poliza = escapeHtml(row["POLIZA DE SEGURO"]);
 					const inciso = escapeHtml(row["INCISO"]);
 					const tipo = escapeHtml(row["TIPO"]);
-					const kmAntes = escapeHtml(row["kilometraje del antes del"]);
+					const kmAntes = escapeHtml(row["ultimo cambio de balatas"]);
 					const ultimoCambio = escapeHtml(row["ultimo cambio de llantas"]);
 					const id = escapeHtml(row.__id);
 
@@ -1317,6 +1456,124 @@
 				`;
 			}).join("");
 		}
+
+		function openInventarioForm(open) {
+			inventarioFormWrap.classList.toggle("open", open);
+			toggleInventarioFormBtn.textContent = open ? "Ocultar formulario" : "Agregar";
+		}
+
+		function openSolicitudForm(open) {
+			solicitudFormWrap.classList.toggle("open", open);
+			toggleSolicitudFormBtn.textContent = open ? "Ocultar formulario" : "Agregar";
+		}
+
+		function renderInventario() {
+			if (!inventarioRows.length) {
+				inventarioTbody.innerHTML = '<tr><td colspan="2" class="empty">Sin registros de inventario por ahora.</td></tr>';
+				return;
+			}
+
+			inventarioTbody.innerHTML = inventarioRows
+				.map((row, idx) => {
+					const producto = escapeHtml(row.producto);
+					const cantidad = Number(row.cantidad) || 0;
+					return `
+						<tr>
+							<td>${producto}</td>
+							<td>
+								<div style="display:flex;align-items:center;gap:6px;">
+									<button class="btn btn-secondary btn-small" data-inv-action="minus" data-inv-idx="${idx}" type="button" style="padding:2px 8px;font-size:1rem;line-height:1;">−</button>
+									<span style="min-width:28px;text-align:center;font-weight:600;">${cantidad}</span>
+									<button class="btn btn-secondary btn-small" data-inv-action="plus" data-inv-idx="${idx}" type="button" style="padding:2px 8px;font-size:1rem;line-height:1;">+</button>
+								</div>
+							</td>
+						</tr>
+					`;
+				})
+				.join("");
+		}
+
+		inventarioTbody.addEventListener("click", (event) => {
+			const btn = event.target.closest("button[data-inv-action]");
+			if (!btn) return;
+			const idx = parseInt(btn.dataset.invIdx, 10);
+			if (isNaN(idx) || !inventarioRows[idx]) return;
+			const delta = btn.dataset.invAction === "plus" ? 1 : -1;
+			const current = Number(inventarioRows[idx].cantidad) || 0;
+			inventarioRows[idx].cantidad = Math.max(0, current + delta);
+			renderInventario();
+		});
+
+		function renderSolicitudes() {
+			if (!solicitudRows.length) {
+				solicitudTbody.innerHTML = '<tr><td colspan="5" class="empty">Sin solicitudes registradas por ahora.</td></tr>';
+				return;
+			}
+
+			solicitudTbody.innerHTML = solicitudRows
+				.map((row) => {
+							const fecha = escapeHtml(row["Fecha"]);
+					const solicitante = escapeHtml(row["Solicitante"]);
+					const material = escapeHtml(row["Material"]);
+					const cantidadSolicitada = escapeHtml(row["Cantidad solicitada"]);
+					const estatusEntrega = escapeHtml(row["Estatus de entrega"]);
+					return `
+						<tr>
+							<td>${fecha}</td>
+							<td>${solicitante}</td>
+							<td>${material}</td>
+							<td>${cantidadSolicitada}</td>
+							<td>${estatusEntrega}</td>
+						</tr>
+					`;
+				})
+				.join("");
+		}
+
+		toggleInventarioFormBtn.addEventListener("click", () => {
+			openInventarioForm(!inventarioFormWrap.classList.contains("open"));
+		});
+
+		cancelInventarioFormBtn.addEventListener("click", () => {
+			inventarioForm.reset();
+			openInventarioForm(false);
+		});
+
+		toggleSolicitudFormBtn.addEventListener("click", () => {
+			openSolicitudForm(!solicitudFormWrap.classList.contains("open"));
+		});
+
+		cancelSolicitudFormBtn.addEventListener("click", () => {
+			solicitudForm.reset();
+			openSolicitudForm(false);
+		});
+
+		inventarioForm.addEventListener("submit", (event) => {
+			event.preventDefault();
+			const formData = new FormData(inventarioForm);
+			inventarioRows.unshift({
+				producto: (formData.get("producto") || "").toString().trim(),
+				cantidad: (formData.get("cantidad") || "0").toString().trim(),
+			});
+			inventarioForm.reset();
+			openInventarioForm(false);
+			renderInventario();
+		});
+
+		solicitudForm.addEventListener("submit", (event) => {
+			event.preventDefault();
+			const formData = new FormData(solicitudForm);
+			solicitudRows.unshift({
+				"Fecha": (formData.get("Fecha") || "").toString().trim(),
+				"Solicitante": (formData.get("Solicitante") || "").toString().trim(),
+				"Material": (formData.get("Material") || "").toString().trim(),
+				"Cantidad solicitada": (formData.get("Cantidad solicitada") || "").toString().trim(),
+				"Estatus de entrega": (formData.get("Estatus de entrega") || "").toString().trim(),
+			});
+			solicitudForm.reset();
+			openSolicitudForm(false);
+			renderSolicitudes();
+		});
 
 		tallerTbody.addEventListener("click", async (event) => {
 			const button = event.target.closest("button[data-action]");
@@ -1575,6 +1832,8 @@
 		});
 
 		ensureDefaultFecha();
+		renderInventario();
+		renderSolicitudes();
 		loadAllData();
 	</script>
 </body>
