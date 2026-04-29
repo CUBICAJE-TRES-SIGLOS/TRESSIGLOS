@@ -867,7 +867,7 @@
 		const SERVICIO_COLUMNS = ["FECHA", "UNIDAD", "TEMA", "COMENTARIO", "ESTATUS"];
 		const TALLER_COLUMNS = ["Lugar taller", "economico", "tema", "comentario", "estatus"];
 		const INSUMOS_COLUMNS = ["producto", "cantidad"];
-		const SOLICITUD_COLUMNS = ["fecha", "solicitante", "material", "cantidad solicitada", "estatus de entrega"];
+		const SOLICITUD_COLUMNS = ["fecha", "solicitante", "material", "cantidad solicitada", "estatus de entrega", "fecha de entrega"];
 		const UNIDAD_COLUMNS = [
 			"ECONOMICO",
 			"UNIDAD",
@@ -1625,11 +1625,12 @@
 						<td>${material}</td>
 						<td>${cantidad}</td>
 						<td>${estatusBadge}</td>
+						<td>${fechaEntrega}</td>
 						<td>
 							<button class="btn btn-secondary btn-small action-btn" data-action="edit-solicitud" data-id="${id}">Editar</button>
 							<button class="btn btn-danger btn-small action-btn" data-action="delete-solicitud" data-id="${id}">Eliminar</button>
 						</td>
-					</tr>
+					</tr> 
 				`;
 				})
 				.join("");
