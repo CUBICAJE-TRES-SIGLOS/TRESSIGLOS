@@ -734,7 +734,7 @@
 						</div>
 						<div class="field">
 							<label for="solicitud-solicitante">solicitante</label>
-							<input id="solicitud-solicitante" name="solicitante" type="text" required />
+							<input id="solicitud-solicitante" name="solicitante" type="text" list="solicitudUnidadDatalist" placeholder="Escribe economico o unidad" autocomplete="off" required />
 						</div>
 						<div class="field">
 							<label for="solicitud-material">material</label>
@@ -753,6 +753,7 @@
 							</select>
 						</div>
 					</div>
+					<datalist id="solicitudUnidadDatalist"></datalist>
 				</div>
 				<div class="modal-actions">
 					<button type="button" class="btn btn-secondary" id="cancelSolicitudModalBtn">Cancelar</button>
@@ -815,6 +816,7 @@
 		const temaInput = document.getElementById("tema");
 		const unidadInfo = document.getElementById("unidadInfo");
 		const unidadDatalist = document.getElementById("unidadDatalist");
+		const solicitudUnidadDatalist = document.getElementById("solicitudUnidadDatalist");
 		const searchTaller = document.getElementById("searchTaller");
 		const toggleTallerFormBtn = document.getElementById("toggleTallerFormBtn");
 		const cancelTallerFormBtn = document.getElementById("cancelTallerFormBtn");
@@ -1139,17 +1141,31 @@
 
 		function updateAutocompleteSources() {
 			const unidadOptions = [];
+			const solicitudOptions = [];
 			const economicoSet = new Set();
+			const solicitudSet = new Set();
 			unidadesRows.forEach((row) => {
 				const eco = (row["ECONOMICO"] || "").toString().trim();
+				const uni = (row["UNIDAD"] || "").toString().trim();
 
 				if (eco && !economicoSet.has(eco.toLowerCase())) {
 					economicoSet.add(eco.toLowerCase());
 					unidadOptions.push(`<option value="${escapeHtml(eco)}"></option>`);
 				}
+
+				if (eco && !solicitudSet.has(eco.toLowerCase())) {
+					solicitudSet.add(eco.toLowerCase());
+					solicitudOptions.push(`<option value="${escapeHtml(eco)}"></option>`);
+				}
+
+				if (uni && !solicitudSet.has(uni.toLowerCase())) {
+					solicitudSet.add(uni.toLowerCase());
+					solicitudOptions.push(`<option value="${escapeHtml(uni)}"></option>`);
+				}
 			});
 
 			unidadDatalist.innerHTML = unidadOptions.join("");
+			solicitudUnidadDatalist.innerHTML = solicitudOptions.join("");
 			refreshUnidadInfo();
 		}
 
