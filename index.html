@@ -1175,11 +1175,6 @@
 					solicitudSet.add(eco.toLowerCase());
 					solicitudOptions.push(`<option value="${escapeHtml(eco)}"></option>`);
 				}
-
-				if (uni && !solicitudSet.has(uni.toLowerCase())) {
-					solicitudSet.add(uni.toLowerCase());
-					solicitudOptions.push(`<option value="${escapeHtml(uni)}"></option>`);
-				}
 			});
 
 			unidadDatalist.innerHTML = unidadOptions.join("");
