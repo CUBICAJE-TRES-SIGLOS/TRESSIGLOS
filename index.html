@@ -681,11 +681,12 @@
 							<th>material</th>
 							<th>cantidad solicitada</th>
 							<th>estatus de entrega</th>
+							<th>fecha de entrega</th>
 							<th>Accion</th>
 						</tr>
 					</thead>
 					<tbody id="solicitudTbody">
-						<tr><td colspan="6" class="empty">Cargando SOLICITUD...</td></tr>
+						<tr><td colspan="7" class="empty">Cargando SOLICITUD...</td></tr>
 					</tbody>
 				</table>
 			</div>
@@ -755,6 +756,10 @@
 								<option value="en proceso" style="background:#ffe0b2;color:#7c2d12;font-weight:700;">🟠 en proceso</option>
 								<option value="entregado" style="background:#c8f7d3;color:#14532d;font-weight:700;">🟢 entregado</option>
 							</select>
+						</div>
+						<div class="field">
+							<label for="solicitud-fecha-entrega">fecha de entrega</label>
+							<input id="solicitud-fecha-entrega" name="fecha de entrega" type="date" />
 						</div>
 					</div>
 					<datalist id="solicitudUnidadDatalist"></datalist>
@@ -998,6 +1003,15 @@
 									<option value="En proceso" ${(current === "en proceso" || current === "en proceso-taller" || current === "proceso") ? "selected" : ""}>En proceso</option>
 									<option value="Resuelto" ${current === "resuelto" ? "selected" : ""}>Resuelto</option>
 								</select>
+							</div>
+						`;
+					}
+
+					if (type === "solicitud" && (column === "fecha" || column === "fecha de entrega")) {
+						return `
+							<div class="field">
+								<label for="${id}">${escapeHtml(column)}</label>
+								<input id="${id}" name="${escapeHtml(column)}" type="date" value="${value}" />
 							</div>
 						`;
 					}
@@ -1404,7 +1418,7 @@
 			datosTbody.innerHTML = `<tr><td colspan="15" class="empty">${escapeHtml(message)}</td></tr>`;
 			tallerTbody.innerHTML = `<tr><td colspan="6" class="empty">${escapeHtml(message)}</td></tr>`;
 			insumosTbody.innerHTML = `<tr><td colspan="3" class="empty">${escapeHtml(message)}</td></tr>`;
-			solicitudTbody.innerHTML = `<tr><td colspan="6" class="empty">${escapeHtml(message)}</td></tr>`;
+			solicitudTbody.innerHTML = `<tr><td colspan="7" class="empty">${escapeHtml(message)}</td></tr>`;
 		}
 
 		async function loadAllData() {
@@ -1576,7 +1590,7 @@
 			const rows = solicitudRows.filter((row) => rowMatchesSearch(row, query));
 
 			if (!rows.length) {
-				solicitudTbody.innerHTML = '<tr><td colspan="6" class="empty">No hay registros en SOLICITUD.</td></tr>';
+				solicitudTbody.innerHTML = '<tr><td colspan="7" class="empty">No hay registros en SOLICITUD.</td></tr>';
 				return;
 			}
 
@@ -1602,6 +1616,7 @@
 				const cantidad = escapeHtml(row["cantidad solicitada"]);
 				const estatusRaw = (row["estatus de entrega"] || "").toLowerCase();
 				const estatus = escapeHtml(row["estatus de entrega"]);
+				const fechaEntrega = escapeHtml(row["fecha de entrega"] || "");
 				const id = escapeHtml(row.__id);
 				const estatusBadge = estatusRaw === "entregado"
 					? `<span style="background:#c8f7d3;color:#14532d;font-weight:700;padding:3px 10px;border-radius:999px;font-size:.8rem;">🟢 entregado</span>`
@@ -1815,6 +1830,7 @@
 				"material": (formData.get("material") || "").toString().trim(),
 				"cantidad solicitada": (formData.get("cantidad solicitada") || "").toString().trim(),
 				"estatus de entrega": (formData.get("estatus de entrega") || "").toString().trim(),
+				"fecha de entrega": (formData.get("fecha de entrega") || "").toString().trim(),
 			};
 
 			try {
