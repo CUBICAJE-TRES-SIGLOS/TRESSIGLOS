@@ -1576,7 +1576,22 @@
 				return;
 			}
 
-			solicitudTbody.innerHTML = rows.map((row) => {
+			solicitudTbody.innerHTML = rows
+				.slice()
+				.sort((a, b) => {
+					const estatusRank = (value) => {
+						const v = (value || "").toLowerCase().trim();
+						if (v === "en proceso") return 0;
+						if (v === "entregado") return 2;
+						return 1;
+					};
+
+					const rankDiff = estatusRank(a["estatus de entrega"]) - estatusRank(b["estatus de entrega"]);
+					if (rankDiff !== 0) return rankDiff;
+
+					return parseFechaForSort(b["fecha"]) - parseFechaForSort(a["fecha"]);
+				})
+				.map((row) => {
 				const fecha = escapeHtml(row["fecha"]);
 				const solicitante = escapeHtml(row["solicitante"]);
 				const material = escapeHtml(row["material"]);
@@ -1602,7 +1617,8 @@
 						</td>
 					</tr>
 				`;
-			}).join("");
+				})
+				.join("");
 		}
 
 		function openModal(modal) {
