@@ -255,67 +255,6 @@
 			table-layout: auto;
 		}
 
-		.services-table {
-			width: max-content;
-			min-width: 980px;
-		}
-
-		.services-table th,
-		.services-table td {
-			min-width: 130px;
-		}
-
-		.services-table .col-tema {
-			min-width: 260px;
-		}
-
-		.services-table .col-comentario {
-			position: sticky;
-			right: 210px;
-			z-index: 3;
-			background: #fff;
-			min-width: 140px;
-			max-width: 180px;
-		}
-
-		.services-table .col-estatus {
-			position: sticky;
-			right: 110px;
-			z-index: 3;
-			background: #fff;
-		}
-
-		.services-table .col-accion {
-			position: sticky;
-			right: 0;
-			z-index: 4;
-			background: #fff;
-		}
-
-		.services-table th.col-comentario,
-		.services-table th.col-estatus,
-		.services-table th.col-accion {
-			background: #f3f7fd;
-		}
-
-		.services-table tr.row-pendiente .col-comentario,
-		.services-table tr.row-pendiente .col-estatus,
-		.services-table tr.row-pendiente .col-accion {
-			background: #ffd8a8;
-		}
-
-		.services-table tr.row-en-proceso .col-comentario,
-		.services-table tr.row-en-proceso .col-estatus,
-		.services-table tr.row-en-proceso .col-accion {
-			background: #fff3a3;
-		}
-
-		.services-table tr.row-resuelto .col-comentario,
-		.services-table tr.row-resuelto .col-estatus,
-		.services-table tr.row-resuelto .col-accion {
-			background: #bff0c9;
-		}
-
 		th,
 		td {
 			padding: 10px;
@@ -528,15 +467,15 @@
 			</div>
 
 			<div class="table-wrap">
-				<table class="services-table" aria-label="Tabla de detalles de unidades">
+				<table aria-label="Tabla de detalles de unidades">
 					<thead>
 						<tr>
 							<th>Fecha</th>
 							<th>Unidad</th>
-							<th class="col-tema">Tema</th>
-							<th class="col-comentario">Comentario</th>
-							<th class="col-estatus">Estatus</th>
-							<th class="col-accion">Accion</th>
+							<th>Tema</th>
+							<th>Comentario</th>
+							<th>Estatus</th>
+							<th>Accion</th>
 						</tr>
 					</thead>
 					<tbody id="detallesTbody">
@@ -595,11 +534,11 @@
 					<div class="grid">
 						<div class="field">
 							<label for="taller-lugar">Lugar taller</label>
-							<input id="taller-lugar" name="Lugar taller" type="text" placeholder="Ej. Taller Norte" required />
+							<input id="taller-lugar" name="Lugar taller" type="text" value="Sigue en taller" readonly required />
 						</div>
 						<div class="field">
 							<label for="taller-economico">Economico</label>
-							<input id="taller-economico" name="economico" type="text" placeholder="Ej. U-102" autocomplete="off" required />
+							<input id="taller-economico" name="economico" type="text" list="tallerEconomicoDatalist" placeholder="Ej. U-102" autocomplete="off" required />
 						</div>
 						<div class="field">
 							<label for="taller-tema">Tema</label>
@@ -618,6 +557,7 @@
 							</select>
 						</div>
 					</div>
+					<datalist id="tallerEconomicoDatalist"></datalist>
 					<div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
 						<button type="submit" class="btn btn-primary">Guardar entrada</button>
 						<button type="button" class="btn btn-secondary" id="cancelTallerFormBtn">Cancelar</button>
@@ -831,6 +771,9 @@
 		const cancelTallerFormBtn = document.getElementById("cancelTallerFormBtn");
 		const tallerFormWrap = document.getElementById("tallerFormWrap");
 		const tallerForm = document.getElementById("tallerForm");
+		const tallerLugarInput = document.getElementById("taller-lugar");
+		const tallerEconomicoInput = document.getElementById("taller-economico");
+		const tallerEconomicoDatalist = document.getElementById("tallerEconomicoDatalist");
 		const tallerTbody = document.getElementById("tallerTbody");
 		const searchInsumos = document.getElementById("searchInsumos");
 		const searchSolicitud = document.getElementById("searchSolicitud");
@@ -863,6 +806,7 @@
 		const SHEET_TALLER = "unidades en taller";
 		const SHEET_INSUMOS = "INSUMOS";
 		const SHEET_SOLICITUD = "SOLICITUD";
+		const TALLER_DEFAULT_LUGAR = "Sigue en taller";
 
 		const SERVICIO_COLUMNS = ["FECHA", "UNIDAD", "TEMA", "COMENTARIO", "ESTATUS"];
 		const TALLER_COLUMNS = ["Lugar taller", "economico", "tema", "comentario", "estatus"];
@@ -1160,8 +1104,10 @@
 		function updateAutocompleteSources() {
 			const unidadOptions = [];
 			const solicitudOptions = [];
+			const tallerEconomicoOptions = [];
 			const economicoSet = new Set();
 			const solicitudSet = new Set();
+			const tallerEconomicoSet = new Set();
 			unidadesRows.forEach((row) => {
 				const eco = (row["ECONOMICO"] || "").toString().trim();
 				const uni = (row["UNIDAD"] || "").toString().trim();
@@ -1175,11 +1121,21 @@
 					solicitudSet.add(eco.toLowerCase());
 					solicitudOptions.push(`<option value="${escapeHtml(eco)}"></option>`);
 				}
+
+				if (eco && !tallerEconomicoSet.has(eco.toLowerCase())) {
+					tallerEconomicoSet.add(eco.toLowerCase());
+					tallerEconomicoOptions.push(`<option value="${escapeHtml(eco)}"></option>`);
+				}
 			});
 
 			unidadDatalist.innerHTML = unidadOptions.join("");
 			solicitudUnidadDatalist.innerHTML = solicitudOptions.join("");
+			tallerEconomicoDatalist.innerHTML = tallerEconomicoOptions.join("");
 			refreshUnidadInfo();
+		}
+
+		function applyTallerDefaults() {
+			tallerLugarInput.value = TALLER_DEFAULT_LUGAR;
 		}
 
 		function queryWithSheet(sheetName, criteria) {
@@ -1342,10 +1298,10 @@
 						<tr class="${rowClass}">
 							<td>${fecha}</td>
 							<td>${unidad}</td>
-							<td class="col-tema">${tema}</td>
-							<td class="col-comentario">${comentario}</td>
-							<td class="col-estatus"><span class="${statusClass(estatus)}">${estatus || "Sin estatus"}</span></td>
-							<td class="col-accion">
+							<td>${tema}</td>
+							<td>${comentario}</td>
+							<td><span class="${statusClass(estatus)}">${estatus || "Sin estatus"}</span></td>
+							<td>
 								<button class="btn btn-secondary btn-small action-btn" data-action="edit-servicio" data-id="${id}">Editar</button>
 								<button class="btn btn-danger btn-small action-btn" data-action="delete-servicio" data-id="${id}">Eliminar</button>
 							</td>
@@ -1510,6 +1466,10 @@
 		function openTallerForm(open) {
 			tallerFormWrap.classList.toggle("open", open);
 			toggleTallerFormBtn.textContent = open ? "Ocultar formulario" : "Nueva entrada";
+			if (open) {
+				applyTallerDefaults();
+				tallerEconomicoInput.focus();
+			}
 		}
 
 		toggleTallerFormBtn.addEventListener("click", () => {
@@ -1518,6 +1478,7 @@
 
 		cancelTallerFormBtn.addEventListener("click", () => {
 			tallerForm.reset();
+			applyTallerDefaults();
 			openTallerForm(false);
 		});
 
@@ -1687,7 +1648,7 @@
 			event.preventDefault();
 			const formData = new FormData(tallerForm);
 			const record = {
-				"Lugar taller": (formData.get("Lugar taller") || "").toString().trim(),
+				"Lugar taller": TALLER_DEFAULT_LUGAR,
 				"economico": (formData.get("economico") || "").toString().trim(),
 				"tema": (formData.get("tema") || "").toString().trim(),
 				"comentario": (formData.get("comentario") || "").toString().trim(),
@@ -1702,6 +1663,7 @@
 				});
 				if (!response.ok) throw new Error("No se pudo guardar en SheetDB.");
 				tallerForm.reset();
+				applyTallerDefaults();
 				openTallerForm(false);
 				await loadAllData();
 			} catch (error) {
@@ -1856,6 +1818,8 @@
 			const row = serviciosRows.find((item) => item.__id === rowId);
 			startEditRow("servicio", row);
 		}
+
+		applyTallerDefaults();
 
 		async function handleDeleteServicio(rowId) {
 			const row = serviciosRows.find((item) => item.__id === rowId);
