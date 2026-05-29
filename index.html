@@ -175,6 +175,35 @@
 			width: 100%;
 		}
 
+		.voice-player {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.voice-player-main {
+			border-radius: 999px;
+			padding: 8px 14px;
+			min-width: 74px;
+		}
+
+		.voice-player-panel {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 6px;
+			border-radius: 999px;
+			border: 1px solid #c8d7ec;
+			background: #f4f8ff;
+			box-shadow: 0 4px 14px rgba(19, 32, 51, 0.12);
+		}
+
+		.voice-player-panel .btn {
+			border-radius: 999px;
+			padding: 7px 10px;
+			font-size: 0.8rem;
+		}
+
 		.form-wrap {
 			background: var(--card);
 			border: 1px solid var(--border);
@@ -404,6 +433,15 @@
 			.modal-card {
 				max-height: 95vh;
 			}
+
+			.voice-player {
+				width: 100%;
+			}
+
+			.voice-player-panel {
+				flex-wrap: wrap;
+				max-width: 100%;
+			}
 		}
 	</style>
 </head>
@@ -426,6 +464,14 @@
 			<div class="actions">
 				<h2>Detalles de servicios</h2>
 				<input class="search-box" id="searchServicios" type="text" placeholder="Buscar en detalles de servicios..." />
+				<div class="voice-player" id="voicePlayer">
+					<button class="btn btn-secondary voice-player-main" id="voiceControlsToggle" type="button" aria-expanded="false" aria-controls="voiceControlsPanel">Voz</button>
+					<div class="voice-player-panel" id="voiceControlsPanel" hidden>
+						<button class="btn btn-secondary" id="readServiciosBtn" type="button">Play</button>
+						<button class="btn btn-secondary" id="pauseServiciosVoiceBtn" type="button">Pausa</button>
+						<button class="btn btn-secondary" id="restartServiciosVoiceBtn" type="button">Reiniciar</button>
+					</div>
+				</div>
 				<button class="btn btn-primary" id="toggleFormBtn">Nuevo servicio</button>
 			</div>
 
@@ -760,6 +806,11 @@
 		const detallesTbody = document.getElementById("detallesTbody");
 		const datosTbody = document.getElementById("datosTbody");
 		const searchServicios = document.getElementById("searchServicios");
+		const voiceControlsToggle = document.getElementById("voiceControlsToggle");
+		const voiceControlsPanel = document.getElementById("voiceControlsPanel");
+		const readServiciosBtn = document.getElementById("readServiciosBtn");
+		const pauseServiciosVoiceBtn = document.getElementById("pauseServiciosVoiceBtn");
+		const restartServiciosVoiceBtn = document.getElementById("restartServiciosVoiceBtn");
 		const searchUnidades = document.getElementById("searchUnidades");
 		const unidadInput = document.getElementById("unidad");
 		const temaInput = document.getElementById("tema");
@@ -807,6 +858,8 @@
 		const SHEET_INSUMOS = "INSUMOS";
 		const SHEET_SOLICITUD = "SOLICITUD";
 		const TALLER_DEFAULT_LUGAR = "Sigue en taller";
+		const SERVICIOS_VOICE_INTERVAL_MS = 24 * 60 * 60 * 1000;
+		const SERVICIOS_VOICE_LAST_KEY = "servicios_voice_last_run_v1";
 
 		const SERVICIO_COLUMNS = ["FECHA", "UNIDAD", "TEMA", "COMENTARIO", "ESTATUS"];
 		const TALLER_COLUMNS = ["Lugar taller", "economico", "tema", "comentario", "estatus"];
@@ -836,6 +889,7 @@
 		let solicitudRows = [];
 		let rowCounter = 0;
 		let editContext = null;
+		let currentServiciosUtterance = null;
 
 		function createLocalId() {
 			rowCounter += 1;
@@ -893,6 +947,109 @@
 			}
 			if (v === "resuelto") return "row-resuelto";
 			return "";
+		}
+
+		function isServicioPendienteOEnProceso(value) {
+			const v = (value || "").toString().trim().toLowerCase();
+			return v === "pendiente" || v === "en proceso" || v === "en proceso-taller" || v === "proceso";
+		}
+
+		function buildServiciosPendientesVoiceRows() {
+			return serviciosRows
+				.filter((row) => isServicioPendienteOEnProceso(row["ESTATUS"]))
+				.slice()
+				.sort((a, b) => parseFechaForSort(b["FECHA"]) - parseFechaForSort(a["FECHA"]));
+		}
+
+		function buildServiciosVoiceText(rows) {
+			if (!rows.length) {
+				return "No hay servicios pendientes ni en proceso en este momento.";
+			}
+
+			const header = `Resumen de servicios pendientes y en proceso. Total: ${rows.length}.`;
+			const details = rows.map((row, index) => {
+				const fecha = (row["FECHA"] || "sin fecha").toString().trim() || "sin fecha";
+				const unidad = (row["UNIDAD"] || "sin unidad").toString().trim() || "sin unidad";
+				const tema = (row["TEMA"] || "sin tema").toString().trim() || "sin tema";
+				const comentario = (row["COMENTARIO"] || "sin comentario").toString().trim() || "sin comentario";
+				const estatus = (row["ESTATUS"] || "sin estatus").toString().trim() || "sin estatus";
+				return `${index + 1}. Fecha ${fecha}. Unidad ${unidad}. Tema ${tema}. Comentario ${comentario}. Estatus ${estatus}.`;
+			});
+			return `${header} ${details.join(" ")}`;
+		}
+
+		function updateServiciosVoiceButtons() {
+			if (!readServiciosBtn || !pauseServiciosVoiceBtn || !restartServiciosVoiceBtn) {
+				return;
+			}
+			const supported = "speechSynthesis" in window;
+			readServiciosBtn.disabled = !supported;
+			pauseServiciosVoiceBtn.disabled = !supported;
+			restartServiciosVoiceBtn.disabled = !supported;
+			if (!supported) {
+				pauseServiciosVoiceBtn.textContent = "Pausar voz";
+				return;
+			}
+			const synth = window.speechSynthesis;
+			pauseServiciosVoiceBtn.textContent = synth.paused ? "Reanudar voz" : "Pausar voz";
+			pauseServiciosVoiceBtn.disabled = !(synth.speaking || synth.paused);
+		}
+
+		function setVoiceControlsOpen(isOpen) {
+			if (!voiceControlsPanel || !voiceControlsToggle) return;
+			voiceControlsPanel.hidden = !isOpen;
+			voiceControlsToggle.setAttribute("aria-expanded", String(isOpen));
+		}
+
+		function readServiciosByVoice(text) {
+			if (!("speechSynthesis" in window)) {
+				alert("Este navegador no soporta lectura por voz.");
+				return false;
+			}
+			window.speechSynthesis.cancel();
+			const utterance = new SpeechSynthesisUtterance(text);
+			utterance.lang = "es-MX";
+			utterance.rate = 1;
+			utterance.pitch = 1;
+
+			const voices = window.speechSynthesis.getVoices();
+			const preferredVoice = voices.find((voice) =>
+				(voice.lang || "").toLowerCase().startsWith("es")
+			);
+			if (preferredVoice) {
+				utterance.voice = preferredVoice;
+			}
+
+			currentServiciosUtterance = utterance;
+			utterance.onstart = () => updateServiciosVoiceButtons();
+			utterance.onend = () => {
+				currentServiciosUtterance = null;
+				updateServiciosVoiceButtons();
+			};
+			utterance.onerror = () => {
+				currentServiciosUtterance = null;
+				updateServiciosVoiceButtons();
+			};
+
+			window.speechSynthesis.speak(utterance);
+			updateServiciosVoiceButtons();
+			return true;
+		}
+
+		function runServiciosVoiceReading(options = {}) {
+			const { force = false } = options;
+			const now = Date.now();
+			const lastRun = Number(localStorage.getItem(SERVICIOS_VOICE_LAST_KEY) || 0);
+			if (!force && now - lastRun < SERVICIOS_VOICE_INTERVAL_MS) {
+				return;
+			}
+
+			const rows = buildServiciosPendientesVoiceRows();
+			const text = buildServiciosVoiceText(rows);
+			const started = readServiciosByVoice(text);
+			if (started) {
+				localStorage.setItem(SERVICIOS_VOICE_LAST_KEY, String(now));
+			}
 		}
 
 		function escapeHtml(value) {
@@ -1413,11 +1570,47 @@
 				renderInsumos();
 				renderSolicitud();
 				updateAutocompleteSources();
+				runServiciosVoiceReading();
 			} catch (error) {
 				console.error(error);
 				showErrorRows("No se pudo conectar con SheetDB. Revisa el ID, nombres de hojas y conexion a internet.");
 			}
 		}
+
+		readServiciosBtn?.addEventListener("click", () => {
+			runServiciosVoiceReading({ force: true });
+		});
+
+		voiceControlsToggle?.addEventListener("click", () => {
+			const isOpen = voiceControlsToggle.getAttribute("aria-expanded") === "true";
+			setVoiceControlsOpen(!isOpen);
+		});
+
+		document.addEventListener("click", (event) => {
+			if (!voiceControlsPanel || !voiceControlsToggle) return;
+			const target = event.target;
+			if (!(target instanceof Node)) return;
+			if (voiceControlsPanel.contains(target) || voiceControlsToggle.contains(target)) return;
+			setVoiceControlsOpen(false);
+		});
+
+		pauseServiciosVoiceBtn?.addEventListener("click", () => {
+			if (!("speechSynthesis" in window)) {
+				alert("Este navegador no soporta lectura por voz.");
+				return;
+			}
+			const synth = window.speechSynthesis;
+			if (synth.paused) {
+				synth.resume();
+			} else if (synth.speaking) {
+				synth.pause();
+			}
+			updateServiciosVoiceButtons();
+		});
+
+		restartServiciosVoiceBtn?.addEventListener("click", () => {
+			runServiciosVoiceReading({ force: true });
+		});
 
 		searchServicios.addEventListener("input", () => {
 			renderServicios();
@@ -2003,7 +2196,11 @@
 		});
 
 		ensureDefaultFecha();
+		updateServiciosVoiceButtons();
 		loadAllData();
+		setInterval(() => {
+			runServiciosVoiceReading();
+		}, 60 * 60 * 1000);
 	</script>
 </body>
 </html>  
