@@ -860,6 +860,22 @@
 		const TALLER_DEFAULT_LUGAR = "Sigue en taller";
 		const SERVICIOS_VOICE_INTERVAL_MS = 24 * 60 * 60 * 1000;
 		const SERVICIOS_VOICE_LAST_KEY = "servicios_voice_last_run_v1";
+ 		const SERVICIOS_VOICE_MALE_HINTS = [
+			"male",
+			"mascul",
+			"hombre",
+			"raul",
+			"jorge",
+			"carlos",
+			"diego",
+			"pablo",
+			"david",
+			"miguel",
+			"alejandro",
+			"mateo",
+			"hector",
+			"francisco",
+		];
 
 		const SERVICIO_COLUMNS = ["FECHA", "UNIDAD", "TEMA", "COMENTARIO", "ESTATUS"];
 		const TALLER_COLUMNS = ["Lugar taller", "economico", "tema", "comentario", "estatus"];
@@ -890,6 +906,7 @@
 		let rowCounter = 0;
 		let editContext = null;
 		let currentServiciosUtterance = null;
+		let serviciosPreferredVoice = null;
 
 		function createLocalId() {
 			rowCounter += 1;
@@ -961,9 +978,16 @@
 				.sort((a, b) => parseFechaForSort(b["FECHA"]) - parseFechaForSort(a["FECHA"]));
 		}
 
+		function getServiciosVoiceGreeting() {
+			const hour = new Date().getHours();
+			const saludo = hour < 12 ? "buenos dias" : "buenas tardes";
+			return `Hola, ${saludo}.`;
+		}
+
 		function buildServiciosVoiceText(rows) {
+			const greeting = getServiciosVoiceGreeting();
 			if (!rows.length) {
-				return "No hay servicios pendientes ni en proceso en este momento.";
+				return `${greeting} No hay servicios pendientes ni en proceso en este momento.`;
 			}
 
 			const header = `Resumen de servicios pendientes y en proceso. Total: ${rows.length}.`;
@@ -975,7 +999,7 @@
 				const estatus = (row["ESTATUS"] || "sin estatus").toString().trim() || "sin estatus";
 				return `${index + 1}. Fecha ${fecha}. Unidad ${unidad}. Tema ${tema}. Comentario ${comentario}. Estatus ${estatus}.`;
 			});
-			return `${header} ${details.join(" ")}`;
+			return `${greeting} ${header} ${details.join(" ")}`;
 		}
 
 		function updateServiciosVoiceButtons() {
@@ -1001,6 +1025,39 @@
 			voiceControlsToggle.setAttribute("aria-expanded", String(isOpen));
 		}
 
+		function scoreServiciosVoice(voice) {
+			let score = 0;
+			const lang = (voice.lang || "").toLowerCase();
+			const name = (voice.name || "").toLowerCase();
+
+			if (lang.startsWith("es-mx")) score += 120;
+			else if (lang.startsWith("es")) score += 80;
+
+			if (voice.localService) score += 15;
+			if (SERVICIOS_VOICE_MALE_HINTS.some((hint) => name.includes(hint))) {
+				score += 60;
+			}
+
+			return score;
+		}
+
+		function getServiciosPreferredVoice() {
+			if (!("speechSynthesis" in window)) return null;
+			const voices = window.speechSynthesis.getVoices();
+			if (!Array.isArray(voices) || voices.length === 0) return null;
+
+			const spanishVoices = voices.filter((voice) =>
+				(voice.lang || "").toLowerCase().startsWith("es")
+			);
+			const pool = spanishVoices.length > 0 ? spanishVoices : voices;
+
+			const sorted = pool
+				.slice()
+				.sort((a, b) => scoreServiciosVoice(b) - scoreServiciosVoice(a));
+
+			return sorted[0] || null;
+		}
+
 		function readServiciosByVoice(text) {
 			if (!("speechSynthesis" in window)) {
 				alert("Este navegador no soporta lectura por voz.");
@@ -1009,15 +1066,23 @@
 			window.speechSynthesis.cancel();
 			const utterance = new SpeechSynthesisUtterance(text);
 			utterance.lang = "es-MX";
-			utterance.rate = 1;
-			utterance.pitch = 1;
+			utterance.rate = 0.95;
+			utterance.pitch = 0.9;
 
-			const voices = window.speechSynthesis.getVoices();
-			const preferredVoice = voices.find((voice) =>
-				(voice.lang || "").toLowerCase().startsWith("es")
-			);
-			if (preferredVoice) {
-				utterance.voice = preferredVoice;
+			if (!serviciosPreferredVoice) {
+				serviciosPreferredVoice = getServiciosPreferredVoice();
+			}
+			if (serviciosPreferredVoice) {
+				utterance.voice = serviciosPreferredVoice;
+				utterance.lang = serviciosPreferredVoice.lang || utterance.lang;
+				const voiceName = (serviciosPreferredVoice.name || "").toLowerCase();
+				const isMaleHinted = SERVICIOS_VOICE_MALE_HINTS.some((hint) =>
+					voiceName.includes(hint)
+				);
+				if (isMaleHinted) {
+					utterance.rate = 0.93;
+					utterance.pitch = 0.84;
+				}
 			}
 
 			currentServiciosUtterance = utterance;
@@ -2197,6 +2262,12 @@
 
 		ensureDefaultFecha();
 		updateServiciosVoiceButtons();
+		if ("speechSynthesis" in window) {
+			window.speechSynthesis.onvoiceschanged = () => {
+				serviciosPreferredVoice = getServiciosPreferredVoice();
+			};
+			serviciosPreferredVoice = getServiciosPreferredVoice();
+		}
 		loadAllData();
 		setInterval(() => {
 			runServiciosVoiceReading();
