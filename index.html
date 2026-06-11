@@ -175,35 +175,6 @@
 			width: 100%;
 		}
 
-		.voice-player {
-			display: inline-flex;
-			align-items: center;
-			gap: 8px;
-		}
-
-		.voice-player-main {
-			border-radius: 999px;
-			padding: 8px 14px;
-			min-width: 74px;
-		}
-
-		.voice-player-panel {
-			display: inline-flex;
-			align-items: center;
-			gap: 6px;
-			padding: 6px;
-			border-radius: 999px;
-			border: 1px solid #c8d7ec;
-			background: #f4f8ff;
-			box-shadow: 0 4px 14px rgba(19, 32, 51, 0.12);
-		}
-
-		.voice-player-panel .btn {
-			border-radius: 999px;
-			padding: 7px 10px;
-			font-size: 0.8rem;
-		}
-
 		.form-wrap {
 			background: var(--card);
 			border: 1px solid var(--border);
@@ -224,6 +195,15 @@
 			gap: 10px;
 		}
 
+		.servicio-grid {
+			grid-template-columns: 150px minmax(170px, 1fr) minmax(220px, 1fr) minmax(320px, 1.45fr) 150px;
+			align-items: start;
+		}
+
+		.servicio-grid .field-comentario {
+			min-width: 0;
+		}
+
 		.field {
 			display: flex;
 			flex-direction: column;
@@ -237,7 +217,8 @@
 		}
 
 		input,
-		select {
+		select,
+		textarea {
 			width: 100%;
 			border: 1px solid var(--border);
 			border-radius: 9px;
@@ -265,9 +246,15 @@
 		}
 
 		input:focus,
-		select:focus {
+		select:focus,
+		textarea:focus {
 			outline: 2px solid #cde1ff;
 			border-color: #85b6f2;
+		}
+
+		textarea.comentario-textarea {
+			min-height: 46px;
+			resize: vertical;
 		}
 
 		.table-wrap {
@@ -313,7 +300,7 @@
 		}
 
 		.modal-card {
-			width: min(900px, 100%);
+			width: min(1120px, 100%);
 			max-height: 90vh;
 			overflow: auto;
 			background: linear-gradient(180deg, #ffffff, #f8fbff);
@@ -345,6 +332,15 @@
 			display: grid;
 			grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
 			gap: 10px;
+		}
+
+		.edit-grid .field-wide {
+			grid-column: 1 / -1;
+		}
+
+		.edit-grid textarea {
+			min-height: 86px;
+			resize: vertical;
 		}
 
 		.modal-actions {
@@ -434,13 +430,8 @@
 				max-height: 95vh;
 			}
 
-			.voice-player {
-				width: 100%;
-			}
-
-			.voice-player-panel {
-				flex-wrap: wrap;
-				max-width: 100%;
+			.servicio-grid {
+				grid-template-columns: 1fr;
 			}
 		}
 	</style>
@@ -464,20 +455,12 @@
 			<div class="actions">
 				<h2>Detalles de servicios</h2>
 				<input class="search-box" id="searchServicios" type="text" placeholder="Buscar en detalles de servicios..." />
-				<div class="voice-player" id="voicePlayer">
-					<button class="btn btn-secondary voice-player-main" id="voiceControlsToggle" type="button" aria-expanded="false" aria-controls="voiceControlsPanel">Voz</button>
-					<div class="voice-player-panel" id="voiceControlsPanel" hidden>
-						<button class="btn btn-secondary" id="readServiciosBtn" type="button">Play</button>
-						<button class="btn btn-secondary" id="pauseServiciosVoiceBtn" type="button">Pausa</button>
-						<button class="btn btn-secondary" id="restartServiciosVoiceBtn" type="button">Reiniciar</button>
-					</div>
-				</div>
 				<button class="btn btn-primary" id="toggleFormBtn">Nuevo servicio</button>
 			</div>
 
 			<div class="form-wrap" id="detalleFormWrap">
 				<form id="detalleForm">
-					<div class="grid">
+					<div class="grid servicio-grid">
 						<div class="field">
 							<label for="fecha">Fecha</label>
 							<input id="fecha" name="fecha" type="date" required />
@@ -491,9 +474,9 @@
 							<label for="tema">Tema</label>
 							<input class="tema-input" id="tema" name="tema" type="text" placeholder="Describe el servicio" autocomplete="off" required />
 						</div>
-						<div class="field">
+						<div class="field field-comentario">
 							<label for="comentario">Comentario</label>
-							<input id="comentario" name="comentario" type="text" placeholder="Comentario breve" />
+							<textarea id="comentario" class="comentario-textarea" name="comentario" placeholder="Comentario completo"></textarea>
 						</div>
 						<div class="field">
 							<label for="estatus">Estatus</label>
@@ -806,11 +789,6 @@
 		const detallesTbody = document.getElementById("detallesTbody");
 		const datosTbody = document.getElementById("datosTbody");
 		const searchServicios = document.getElementById("searchServicios");
-		const voiceControlsToggle = document.getElementById("voiceControlsToggle");
-		const voiceControlsPanel = document.getElementById("voiceControlsPanel");
-		const readServiciosBtn = document.getElementById("readServiciosBtn");
-		const pauseServiciosVoiceBtn = document.getElementById("pauseServiciosVoiceBtn");
-		const restartServiciosVoiceBtn = document.getElementById("restartServiciosVoiceBtn");
 		const searchUnidades = document.getElementById("searchUnidades");
 		const unidadInput = document.getElementById("unidad");
 		const temaInput = document.getElementById("tema");
@@ -858,24 +836,6 @@
 		const SHEET_INSUMOS = "INSUMOS";
 		const SHEET_SOLICITUD = "SOLICITUD";
 		const TALLER_DEFAULT_LUGAR = "Sigue en taller";
-		const SERVICIOS_VOICE_INTERVAL_MS = 24 * 60 * 60 * 1000;
-		const SERVICIOS_VOICE_LAST_KEY = "servicios_voice_last_run_v1";
- 		const SERVICIOS_VOICE_MALE_HINTS = [
-			"male",
-			"mascul",
-			"hombre",
-			"raul",
-			"jorge",
-			"carlos",
-			"diego",
-			"pablo",
-			"david",
-			"miguel",
-			"alejandro",
-			"mateo",
-			"hector",
-			"francisco",
-		];
 
 		const SERVICIO_COLUMNS = ["FECHA", "UNIDAD", "TEMA", "COMENTARIO", "ESTATUS"];
 		const TALLER_COLUMNS = ["Lugar taller", "economico", "tema", "comentario", "estatus"];
@@ -905,8 +865,6 @@
 		let solicitudRows = [];
 		let rowCounter = 0;
 		let editContext = null;
-		let currentServiciosUtterance = null;
-		let serviciosPreferredVoice = null;
 
 		function createLocalId() {
 			rowCounter += 1;
@@ -966,157 +924,6 @@
 			return "";
 		}
 
-		function isServicioPendienteOEnProceso(value) {
-			const v = (value || "").toString().trim().toLowerCase();
-			return v === "pendiente" || v === "en proceso" || v === "en proceso-taller" || v === "proceso";
-		}
-
-		function buildServiciosPendientesVoiceRows() {
-			return serviciosRows
-				.filter((row) => isServicioPendienteOEnProceso(row["ESTATUS"]))
-				.slice()
-				.sort((a, b) => parseFechaForSort(b["FECHA"]) - parseFechaForSort(a["FECHA"]));
-		}
-
-		function getServiciosVoiceGreeting() {
-			const hour = new Date().getHours();
-			const saludo = hour < 12 ? "buenos dias" : "buenas tardes";
-			return `Hola, ${saludo}.`;
-		}
-
-		function buildServiciosVoiceText(rows) {
-			const greeting = getServiciosVoiceGreeting();
-			if (!rows.length) {
-				return `${greeting} No hay servicios pendientes ni en proceso en este momento.`;
-			}
-
-			const header = `Resumen de servicios pendientes y en proceso. Total: ${rows.length}.`;
-			const details = rows.map((row, index) => {
-				const fecha = (row["FECHA"] || "sin fecha").toString().trim() || "sin fecha";
-				const unidad = (row["UNIDAD"] || "sin unidad").toString().trim() || "sin unidad";
-				const tema = (row["TEMA"] || "sin tema").toString().trim() || "sin tema";
-				const comentario = (row["COMENTARIO"] || "sin comentario").toString().trim() || "sin comentario";
-				const estatus = (row["ESTATUS"] || "sin estatus").toString().trim() || "sin estatus";
-				return `${index + 1}. Fecha ${fecha}. Unidad ${unidad}. Tema ${tema}. Comentario ${comentario}. Estatus ${estatus}.`;
-			});
-			return `${greeting} ${header} ${details.join(" ")}`;
-		}
-
-		function updateServiciosVoiceButtons() {
-			if (!readServiciosBtn || !pauseServiciosVoiceBtn || !restartServiciosVoiceBtn) {
-				return;
-			}
-			const supported = "speechSynthesis" in window;
-			readServiciosBtn.disabled = !supported;
-			pauseServiciosVoiceBtn.disabled = !supported;
-			restartServiciosVoiceBtn.disabled = !supported;
-			if (!supported) {
-				pauseServiciosVoiceBtn.textContent = "Pausar voz";
-				return;
-			}
-			const synth = window.speechSynthesis;
-			pauseServiciosVoiceBtn.textContent = synth.paused ? "Reanudar voz" : "Pausar voz";
-			pauseServiciosVoiceBtn.disabled = !(synth.speaking || synth.paused);
-		}
-
-		function setVoiceControlsOpen(isOpen) {
-			if (!voiceControlsPanel || !voiceControlsToggle) return;
-			voiceControlsPanel.hidden = !isOpen;
-			voiceControlsToggle.setAttribute("aria-expanded", String(isOpen));
-		}
-
-		function scoreServiciosVoice(voice) {
-			let score = 0;
-			const lang = (voice.lang || "").toLowerCase();
-			const name = (voice.name || "").toLowerCase();
-
-			if (lang.startsWith("es-mx")) score += 120;
-			else if (lang.startsWith("es")) score += 80;
-
-			if (voice.localService) score += 15;
-			if (SERVICIOS_VOICE_MALE_HINTS.some((hint) => name.includes(hint))) {
-				score += 60;
-			}
-
-			return score;
-		}
-
-		function getServiciosPreferredVoice() {
-			if (!("speechSynthesis" in window)) return null;
-			const voices = window.speechSynthesis.getVoices();
-			if (!Array.isArray(voices) || voices.length === 0) return null;
-
-			const spanishVoices = voices.filter((voice) =>
-				(voice.lang || "").toLowerCase().startsWith("es")
-			);
-			const pool = spanishVoices.length > 0 ? spanishVoices : voices;
-
-			const sorted = pool
-				.slice()
-				.sort((a, b) => scoreServiciosVoice(b) - scoreServiciosVoice(a));
-
-			return sorted[0] || null;
-		}
-
-		function readServiciosByVoice(text) {
-			if (!("speechSynthesis" in window)) {
-				alert("Este navegador no soporta lectura por voz.");
-				return false;
-			}
-			window.speechSynthesis.cancel();
-			const utterance = new SpeechSynthesisUtterance(text);
-			utterance.lang = "es-MX";
-			utterance.rate = 0.95;
-			utterance.pitch = 0.9;
-
-			if (!serviciosPreferredVoice) {
-				serviciosPreferredVoice = getServiciosPreferredVoice();
-			}
-			if (serviciosPreferredVoice) {
-				utterance.voice = serviciosPreferredVoice;
-				utterance.lang = serviciosPreferredVoice.lang || utterance.lang;
-				const voiceName = (serviciosPreferredVoice.name || "").toLowerCase();
-				const isMaleHinted = SERVICIOS_VOICE_MALE_HINTS.some((hint) =>
-					voiceName.includes(hint)
-				);
-				if (isMaleHinted) {
-					utterance.rate = 0.93;
-					utterance.pitch = 0.84;
-				}
-			}
-
-			currentServiciosUtterance = utterance;
-			utterance.onstart = () => updateServiciosVoiceButtons();
-			utterance.onend = () => {
-				currentServiciosUtterance = null;
-				updateServiciosVoiceButtons();
-			};
-			utterance.onerror = () => {
-				currentServiciosUtterance = null;
-				updateServiciosVoiceButtons();
-			};
-
-			window.speechSynthesis.speak(utterance);
-			updateServiciosVoiceButtons();
-			return true;
-		}
-
-		function runServiciosVoiceReading(options = {}) {
-			const { force = false } = options;
-			const now = Date.now();
-			const lastRun = Number(localStorage.getItem(SERVICIOS_VOICE_LAST_KEY) || 0);
-			if (!force && now - lastRun < SERVICIOS_VOICE_INTERVAL_MS) {
-				return;
-			}
-
-			const rows = buildServiciosPendientesVoiceRows();
-			const text = buildServiciosVoiceText(rows);
-			const started = readServiciosByVoice(text);
-			if (started) {
-				localStorage.setItem(SERVICIOS_VOICE_LAST_KEY, String(now));
-			}
-		}
-
 		function escapeHtml(value) {
 			return (value || "")
 				.toString()
@@ -1155,6 +962,15 @@
 								<option value="En proceso" ${(current === "en proceso" || current === "en proceso-taller" || current === "proceso") ? "selected" : ""}>En proceso</option>
 								<option value="Resuelto" ${current === "resuelto" ? "selected" : ""}>Resuelto</option>
 							</select>
+						</div>
+					`;
+				}
+
+				if ((type === "servicio" && column === "COMENTARIO") || (type === "taller" && column === "comentario")) {
+					return `
+						<div class="field field-wide">
+							<label for="${id}">${escapeHtml(column)}</label>
+							<textarea id="${id}" name="${escapeHtml(column)}">${value}</textarea>
 						</div>
 					`;
 				}
@@ -1635,47 +1451,11 @@
 				renderInsumos();
 				renderSolicitud();
 				updateAutocompleteSources();
-				runServiciosVoiceReading();
 			} catch (error) {
 				console.error(error);
 				showErrorRows("No se pudo conectar con SheetDB. Revisa el ID, nombres de hojas y conexion a internet.");
 			}
 		}
-
-		readServiciosBtn?.addEventListener("click", () => {
-			runServiciosVoiceReading({ force: true });
-		});
-
-		voiceControlsToggle?.addEventListener("click", () => {
-			const isOpen = voiceControlsToggle.getAttribute("aria-expanded") === "true";
-			setVoiceControlsOpen(!isOpen);
-		});
-
-		document.addEventListener("click", (event) => {
-			if (!voiceControlsPanel || !voiceControlsToggle) return;
-			const target = event.target;
-			if (!(target instanceof Node)) return;
-			if (voiceControlsPanel.contains(target) || voiceControlsToggle.contains(target)) return;
-			setVoiceControlsOpen(false);
-		});
-
-		pauseServiciosVoiceBtn?.addEventListener("click", () => {
-			if (!("speechSynthesis" in window)) {
-				alert("Este navegador no soporta lectura por voz.");
-				return;
-			}
-			const synth = window.speechSynthesis;
-			if (synth.paused) {
-				synth.resume();
-			} else if (synth.speaking) {
-				synth.pause();
-			}
-			updateServiciosVoiceButtons();
-		});
-
-		restartServiciosVoiceBtn?.addEventListener("click", () => {
-			runServiciosVoiceReading({ force: true });
-		});
 
 		searchServicios.addEventListener("input", () => {
 			renderServicios();
@@ -2261,17 +2041,7 @@
 		});
 
 		ensureDefaultFecha();
-		updateServiciosVoiceButtons();
-		if ("speechSynthesis" in window) {
-			window.speechSynthesis.onvoiceschanged = () => {
-				serviciosPreferredVoice = getServiciosPreferredVoice();
-			};
-			serviciosPreferredVoice = getServiciosPreferredVoice();
-		}
 		loadAllData();
-		setInterval(() => {
-			runServiciosVoiceReading();
-		}, 60 * 60 * 1000);
 	</script>
 </body>
 </html>  
