@@ -175,6 +175,68 @@
 			width: 100%;
 		}
 
+		.preventivo-mini {
+			margin-left: auto;
+			min-width: 190px;
+			max-width: 220px;
+			border: 1px solid var(--border);
+			border-radius: 10px;
+			overflow: hidden;
+			background: #fff;
+			box-shadow: 0 8px 18px rgba(20, 43, 70, 0.08);
+		}
+
+		.preventivo-mini table {
+			width: 100%;
+			min-width: 0;
+			border-collapse: collapse;
+		}
+
+		.preventivo-mini td {
+			padding: 6px 8px;
+			font-size: 0.74rem;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.02em;
+			border-bottom: 1px solid #dce5f2;
+		}
+
+		.preventivo-mini tr:last-child td {
+			border-bottom: none;
+		}
+
+		.preventivo-mini .mini-head td {
+			background: #eef4ff;
+			color: #27497a;
+		}
+
+		.preventivo-mini .mini-ok td {
+			background: #d1fae5;
+			color: #065f46;
+		}
+
+		.preventivo-mini .mini-warn td {
+			background: #fef9c3;
+			color: #854d0e;
+		}
+
+		.preventivo-mini .mini-over td {
+			background: #fee2e2;
+			color: #991b1b;
+		}
+
+		.preventivo-row-ok td {
+			background: #ecfdf5;
+		}
+
+		.preventivo-row-warn td {
+			background: #fefce8;
+		}
+
+		.preventivo-row-over td {
+			background: #fef2f2;
+		}
+
 		.form-wrap {
 			background: var(--card);
 			border: 1px solid var(--border);
@@ -447,8 +509,8 @@
 			<button class="tab-btn active" data-tab="detalles">Detalles de servicios</button>
 			<button class="tab-btn" data-tab="datos">Datos de unidades</button>
 			<button class="tab-btn" data-tab="taller">Unidades en taller</button>
-			<button class="tab-btn" data-tab="insumos">Insumos</button>
-			<button class="tab-btn" data-tab="solicitud">Solicitud</button>
+			<button class="tab-btn" data-tab="insumos">servicios preventivos</button>
+			<button class="tab-btn" data-tab="solicitud">costos de talleres</button>
 		</nav>
 
 		<section class="panel active" id="panel-detalles">
@@ -615,21 +677,32 @@
 
 		<section class="panel" id="panel-insumos">
 			<div class="actions">
-				<h2>INSUMOS</h2>
-				<input class="search-box" id="searchInsumos" type="text" placeholder="Buscar en INSUMOS..." />
+				<h2>servicios preventivos</h2>
+				<input class="search-box" id="searchInsumos" type="text" placeholder="Buscar en servicios preventivos..." />
 				<button class="btn btn-primary" id="openInsumosModalBtn">Agregar</button>
+				<div class="preventivo-mini" aria-label="Tabla de estatus preventivo">
+					<table>
+						<tbody>
+							<tr class="mini-head"><td>unidad y fecha</td></tr>
+							<tr class="mini-ok"><td>servicio realizado</td></tr>
+							<tr class="mini-warn"><td>proximo servicio preve</td></tr>
+							<tr class="mini-over"><td>vencido</td></tr>
+						</tbody>
+					</table>
+				</div>
 			</div>
 			<div class="table-wrap">
-				<table aria-label="Tabla INSUMOS">
+				<table aria-label="Tabla servicios preventivos">
 					<thead>
 						<tr>
-							<th>producto</th>
-							<th>cantidad</th>
+							<th>unidad</th>
+							<th>kilometraje actual</th>
+							<th>fecha del ultimo servicio</th>
 							<th>Accion</th>
 						</tr>
 					</thead>
 					<tbody id="insumosTbody">
-						<tr><td colspan="3" class="empty">Cargando INSUMOS...</td></tr>
+						<tr><td colspan="4" class="empty">Cargando servicios preventivos...</td></tr>
 					</tbody>
 				</table>
 			</div>
@@ -637,25 +710,19 @@
 
 		<section class="panel" id="panel-solicitud">
 			<div class="actions">
-				<h2>SOLICITUD</h2>
-				<input class="search-box" id="searchSolicitud" type="text" placeholder="Buscar en SOLICITUD..." />
-				<button class="btn btn-primary" id="openSolicitudModalBtn">Agregar</button>
+				<h2>costos de talleres</h2>
+				<input class="search-box" id="searchSolicitud" type="text" placeholder="" style="display:none;" />
+				<button class="btn btn-primary" id="openSolicitudModalBtn" style="display:none;">Agregar</button>
 			</div>
 			<div class="table-wrap">
-				<table aria-label="Tabla SOLICITUD">
+				<table aria-label="Tabla costos de talleres">
 					<thead>
 						<tr>
-							<th>fecha</th>
-							<th>solicitante</th>
-							<th>material</th>
-							<th>cantidad solicitada</th>
-							<th>estatus de entrega</th>
-							<th>fecha de entrega</th>
-							<th>Accion</th>
+							<th></th>
 						</tr>
 					</thead>
 					<tbody id="solicitudTbody">
-						<tr><td colspan="7" class="empty">Cargando SOLICITUD...</td></tr>
+						<tr><td colspan="1" class="empty"></td></tr>
 					</tbody>
 				</table>
 			</div>
@@ -665,25 +732,26 @@
 	<div class="modal" id="insumosModal" aria-hidden="true">
 		<div class="modal-card">
 			<div class="modal-head">
-				<h3>Agregar en INSUMOS</h3>
+				<h3>Agregar en servicios preventivos</h3>
 				<button type="button" class="btn btn-secondary btn-small" id="closeInsumosModalBtn">Cerrar</button>
 			</div>
 			<form id="insumosForm">
 				<div class="modal-body">
 					<div class="edit-grid">
 						<div class="field">
-							<label for="insumo-producto">producto</label>
-							<input id="insumo-producto" name="producto" type="text" required />
+							<label for="insumo-unidad">unidad</label>
+							<input id="insumo-unidad" name="unidad" type="text" list="insumoUnidadDatalist" required />
 						</div>
 						<div class="field">
-							<label for="insumo-cantidad">cantidad</label>
-							<div style="display:flex;align-items:center;gap:4px;">
-								<button type="button" onclick="var i=document.getElementById('insumo-cantidad');i.value=Math.max(0,(parseFloat(i.value)||0)-1);" style="width:28px;height:28px;font-size:1rem;border:1px solid #ccc;border-radius:4px;cursor:pointer;background:#f0f0f0;">−</button>
-								<input id="insumo-cantidad" name="cantidad" type="number" min="0" style="width:70px;text-align:center;" required />
-								<button type="button" onclick="var i=document.getElementById('insumo-cantidad');i.value=(parseFloat(i.value)||0)+1;" style="width:28px;height:28px;font-size:1rem;border:1px solid #ccc;border-radius:4px;cursor:pointer;background:#f0f0f0;">+</button>
-							</div>
+							<label for="insumo-km">kilometraje actual</label>
+							<input id="insumo-km" name="kilometraje actual" type="text" required />
+						</div>
+						<div class="field">
+							<label for="insumo-fecha-servicio">fecha del ultimo servicio</label>
+							<input id="insumo-fecha-servicio" name="fecha del ultimo servicio" type="date" required />
 						</div>
 					</div>
+					<datalist id="insumoUnidadDatalist"></datalist>
 				</div>
 				<div class="modal-actions">
 					<button type="button" class="btn btn-secondary" id="cancelInsumosModalBtn">Cancelar</button>
@@ -795,6 +863,7 @@
 		const unidadInfo = document.getElementById("unidadInfo");
 		const unidadDatalist = document.getElementById("unidadDatalist");
 		const solicitudUnidadDatalist = document.getElementById("solicitudUnidadDatalist");
+		const insumoUnidadDatalist = document.getElementById("insumoUnidadDatalist");
 		const searchTaller = document.getElementById("searchTaller");
 		const toggleTallerFormBtn = document.getElementById("toggleTallerFormBtn");
 		const cancelTallerFormBtn = document.getElementById("cancelTallerFormBtn");
@@ -833,13 +902,13 @@
 		const SHEET_UNIDADES = "UNIDADES TRES SIGLOS";
 		const SHEET_SERVICIOS = "DETALLES DE SERVICIOS";
 		const SHEET_TALLER = "unidades en taller";
-		const SHEET_INSUMOS = "INSUMOS";
-		const SHEET_SOLICITUD = "SOLICITUD";
+		const SHEET_INSUMOS = "servicios preventivos";
+		const SHEET_SOLICITUD = "costos de talleres";
 		const TALLER_DEFAULT_LUGAR = "Sigue en taller";
 
 		const SERVICIO_COLUMNS = ["FECHA", "UNIDAD", "TEMA", "COMENTARIO", "ESTATUS"];
 		const TALLER_COLUMNS = ["Lugar taller", "economico", "tema", "comentario", "estatus"];
-		const INSUMOS_COLUMNS = ["producto", "cantidad"];
+		const INSUMOS_COLUMNS = ["unidad", "kilometraje actual", "fecha del ultimo servicio"];
 		const SOLICITUD_COLUMNS = ["fecha", "solicitante", "material", "cantidad solicitada", "estatus de entrega", "fecha de entrega"];
 		const UNIDAD_COLUMNS = [
 			"ECONOMICO",
@@ -1142,9 +1211,11 @@
 		function updateAutocompleteSources() {
 			const unidadOptions = [];
 			const solicitudOptions = [];
+			const preventivoUnidadOptions = [];
 			const tallerEconomicoOptions = [];
 			const economicoSet = new Set();
 			const solicitudSet = new Set();
+			const preventivoSet = new Set();
 			const tallerEconomicoSet = new Set();
 			unidadesRows.forEach((row) => {
 				const eco = (row["ECONOMICO"] || "").toString().trim();
@@ -1164,12 +1235,46 @@
 					tallerEconomicoSet.add(eco.toLowerCase());
 					tallerEconomicoOptions.push(`<option value="${escapeHtml(eco)}"></option>`);
 				}
+
+				if (/^3/.test(eco) && !preventivoSet.has(eco.toLowerCase())) {
+					preventivoSet.add(eco.toLowerCase());
+					preventivoUnidadOptions.push(`<option value="${escapeHtml(eco)}"></option>`);
+				}
 			});
 
 			unidadDatalist.innerHTML = unidadOptions.join("");
 			solicitudUnidadDatalist.innerHTML = solicitudOptions.join("");
+			if (insumoUnidadDatalist) {
+				insumoUnidadDatalist.innerHTML = preventivoUnidadOptions.join("");
+			}
 			tallerEconomicoDatalist.innerHTML = tallerEconomicoOptions.join("");
 			refreshUnidadInfo();
+		}
+
+		function getPreventivoUnits() {
+			const seen = new Set();
+			const units = [];
+			unidadesRows.forEach((row) => {
+				const eco = (row["ECONOMICO"] || "").toString().trim();
+				if (!/^3/.test(eco)) return;
+				const key = eco.toLowerCase();
+				if (seen.has(key)) return;
+				seen.add(key);
+				units.push(eco);
+			});
+			return units.sort((a, b) => a.localeCompare(b, "es", { numeric: true, sensitivity: "base" }));
+		}
+
+		function getPreventivoStatus(fecha) {
+			const ts = parseFechaForSort(fecha);
+			if (!ts) return { cls: "", label: "" };
+			const MS_PER_DAY = 86400000;
+			const today = new Date();
+			today.setHours(0, 0, 0, 0);
+			const days = Math.floor((today.getTime() - ts) / MS_PER_DAY);
+			if (days <= 120) return { cls: "preventivo-row-ok", label: "servicio realizado" };
+			if (days <= 180) return { cls: "preventivo-row-warn", label: "proximo servicio preve" };
+			return { cls: "preventivo-row-over", label: "vencido" };
 		}
 
 		function applyTallerDefaults() {
@@ -1406,8 +1511,8 @@
 			detallesTbody.innerHTML = `<tr><td colspan="6" class="empty">${escapeHtml(message)}</td></tr>`;
 			datosTbody.innerHTML = `<tr><td colspan="15" class="empty">${escapeHtml(message)}</td></tr>`;
 			tallerTbody.innerHTML = `<tr><td colspan="6" class="empty">${escapeHtml(message)}</td></tr>`;
-			insumosTbody.innerHTML = `<tr><td colspan="3" class="empty">${escapeHtml(message)}</td></tr>`;
-			solicitudTbody.innerHTML = `<tr><td colspan="7" class="empty">${escapeHtml(message)}</td></tr>`;
+			insumosTbody.innerHTML = `<tr><td colspan="4" class="empty">${escapeHtml(message)}</td></tr>`;
+			solicitudTbody.innerHTML = `<tr><td colspan="1" class="empty"></td></tr>`;
 		}
 
 		async function loadAllData() {
@@ -1479,7 +1584,8 @@
 
 		openInsumosModalBtn.addEventListener("click", () => {
 			openModal(insumosModal);
-			document.getElementById("insumo-producto").focus();
+			document.getElementById("insumo-unidad").focus();
+			document.getElementById("insumo-fecha-servicio").value = getTodayLocalISO();
 		});
 
 		openSolicitudModalBtn.addEventListener("click", () => {
@@ -1555,24 +1661,44 @@
 
 		function renderInsumos() {
 			const query = (searchInsumos.value || "").trim().toLowerCase();
-			const rows = insumosRows.filter((row) => rowMatchesSearch(row, query));
+			const rowsByUnidad = new Map();
+			insumosRows.forEach((row) => {
+				const unidad = (row["unidad"] || "").toString().trim();
+				if (!unidad) return;
+				rowsByUnidad.set(unidad.toLowerCase(), row);
+			});
+
+			const rows = getPreventivoUnits()
+				.map((unidad) => {
+					const found = rowsByUnidad.get(unidad.toLowerCase());
+					if (found) return found;
+					return {
+						"unidad": unidad,
+						"kilometraje actual": "",
+						"fecha del ultimo servicio": "",
+						__id: createLocalId(),
+					};
+				})
+				.filter((row) => rowMatchesSearch(row, query));
 
 			if (!rows.length) {
-				insumosTbody.innerHTML = '<tr><td colspan="3" class="empty">No hay registros en INSUMOS.</td></tr>';
+				insumosTbody.innerHTML = '<tr><td colspan="4" class="empty">No hay registros en servicios preventivos.</td></tr>';
 				return;
 			}
 
 			insumosTbody.innerHTML = rows.map((row) => {
-				const producto = escapeHtml(row["producto"]);
-				const cantidad = escapeHtml(row["cantidad"]);
+				const unidad = escapeHtml(row["unidad"]);
+				const kilometraje = escapeHtml(row["kilometraje actual"]);
+				const fechaUltimoServicio = escapeHtml(row["fecha del ultimo servicio"]);
 				const id = escapeHtml(row.__id);
+				const status = getPreventivoStatus(row["fecha del ultimo servicio"]);
 				return `
-					<tr>
-						<td>${producto}</td>
-						<td>${cantidad}</td>
+					<tr class="${status.cls}">
+						<td>${unidad}</td>
+						<td>${kilometraje}</td>
+						<td>${fechaUltimoServicio}</td>
 						<td>
 							<button class="btn btn-secondary btn-small action-btn" data-action="edit-insumo" data-id="${id}">Editar</button>
-							<button class="btn btn-danger btn-small action-btn" data-action="delete-insumo" data-id="${id}">Eliminar</button>
 						</td>
 					</tr>
 				`;
@@ -1580,59 +1706,7 @@
 		}
 
 		function renderSolicitud() {
-			const query = (searchSolicitud.value || "").trim().toLowerCase();
-			const rows = solicitudRows.filter((row) => rowMatchesSearch(row, query));
-
-			if (!rows.length) {
-				solicitudTbody.innerHTML = '<tr><td colspan="7" class="empty">No hay registros en SOLICITUD.</td></tr>';
-				return;
-			}
-
-			solicitudTbody.innerHTML = rows
-				.slice()
-				.sort((a, b) => {
-					const estatusRank = (value) => {
-						const v = (value || "").toLowerCase().trim();
-						if (v === "en proceso") return 0;
-						if (v === "entregado") return 2;
-						return 1;
-					};
-
-					const rankDiff = estatusRank(a["estatus de entrega"]) - estatusRank(b["estatus de entrega"]);
-					if (rankDiff !== 0) return rankDiff;
-
-					return parseFechaForSort(b["fecha"]) - parseFechaForSort(a["fecha"]);
-				})
-				.map((row) => {
-				const fecha = escapeHtml(row["fecha"]);
-				const solicitante = escapeHtml(row["solicitante"]);
-				const material = escapeHtml(row["material"]);
-				const cantidad = escapeHtml(row["cantidad solicitada"]);
-				const estatusRaw = (row["estatus de entrega"] || "").toLowerCase();
-				const estatus = escapeHtml(row["estatus de entrega"]);
-				const fechaEntrega = escapeHtml(row["fecha de entrega"] || "");
-				const id = escapeHtml(row.__id);
-				const estatusBadge = estatusRaw === "entregado"
-					? `<span style="background:#c8f7d3;color:#14532d;font-weight:700;padding:3px 10px;border-radius:999px;font-size:.8rem;">🟢 entregado</span>`
-					: estatusRaw === "en proceso"
-					? `<span style="background:#ffe0b2;color:#7c2d12;font-weight:700;padding:3px 10px;border-radius:999px;font-size:.8rem;">🟠 en proceso</span>`
-					: `<span>${estatus}</span>`;
-				return `
-					<tr>
-						<td>${fecha}</td>
-						<td>${solicitante}</td>
-						<td>${material}</td>
-						<td>${cantidad}</td>
-						<td>${estatusBadge}</td>
-						<td>${fechaEntrega}</td>
-						<td>
-							<button class="btn btn-secondary btn-small action-btn" data-action="edit-solicitud" data-id="${id}">Editar</button>
-							<button class="btn btn-danger btn-small action-btn" data-action="delete-solicitud" data-id="${id}">Eliminar</button>
-						</td>
-					</tr> 
-				`;
-				})
-				.join("");
+			solicitudTbody.innerHTML = '<tr><td colspan="1" class="empty"></td></tr>';
 		}
 
 		function openModal(modal) {
@@ -1721,10 +1795,10 @@
 			if (action === "edit-insumo") {
 				const row = insumosRows.find((item) => item.__id === rowId);
 				if (!row) return;
-				const criteria = pickCriteria(row, ["producto", "cantidad"]);
+				const criteria = pickCriteria(row, ["unidad", "kilometraje actual", "fecha del ultimo servicio"]);
 				if (!Object.keys(criteria).length) { alert("No se puede editar: faltan datos clave."); return; }
 				editContext = { sheet: SHEET_INSUMOS, columns: INSUMOS_COLUMNS, criteria, originalRow: { ...row } };
-				editModalTitle.textContent = "Editar INSUMO";
+				editModalTitle.textContent = "Editar servicios preventivos";
 				buildEditFormFields(INSUMOS_COLUMNS, row, "insumo");
 				openEditModal();
 			}
@@ -1732,9 +1806,9 @@
 			if (action === "delete-insumo") {
 				const row = insumosRows.find((item) => item.__id === rowId);
 				if (!row) return;
-				const ok = confirm(`Eliminar insumo "${row["producto"]}"?`);
+				const ok = confirm(`Eliminar registro de servicio preventivo "${row["unidad"]}"?`);
 				if (!ok) return;
-				const criteria = pickCriteria(row, ["producto", "cantidad"]);
+				const criteria = pickCriteria(row, ["unidad", "kilometraje actual", "fecha del ultimo servicio"]);
 				if (!Object.keys(criteria).length) { alert("No se puede eliminar: faltan datos clave."); return; }
 				try {
 					const beforeRows = await fetchSheet(SHEET_INSUMOS);
@@ -1746,12 +1820,13 @@
 					await loadAllData();
 				} catch (error) {
 					console.error(error);
-					alert("No se pudo eliminar el insumo en SheetDB.");
+					alert("No se pudo eliminar el registro de servicios preventivos en SheetDB.");
 				}
 			}
 		});
 
 		solicitudTbody.addEventListener("click", async (event) => {
+			if (panelSolicitud && panelSolicitud.classList.contains("active")) return;
 			const button = event.target.closest("button[data-action]");
 			if (!button) return;
 			const action = button.dataset.action;
@@ -1794,8 +1869,9 @@
 			event.preventDefault();
 			const formData = new FormData(insumosForm);
 			const record = {
-				"producto": (formData.get("producto") || "").toString().trim(),
-				"cantidad": (formData.get("cantidad") || "").toString().trim(),
+				"unidad": (formData.get("unidad") || "").toString().trim(),
+				"kilometraje actual": (formData.get("kilometraje actual") || "").toString().trim(),
+				"fecha del ultimo servicio": (formData.get("fecha del ultimo servicio") || "").toString().trim(),
 			};
 
 			try {
@@ -1805,19 +1881,20 @@
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify({ data: [record] }),
 				});
-				if (!response.ok) throw new Error("No se pudo guardar en INSUMOS.");
+				if (!response.ok) throw new Error("No se pudo guardar en servicios preventivos.");
 				insumosForm.reset();
 				closeModal(insumosModal);
 				await loadAllData();
 			} catch (error) {
 				console.error(error);
-				alert("No se pudo guardar el registro en INSUMOS.");
+				alert("No se pudo guardar el registro en servicios preventivos.");
 			} finally {
 				saveInsumosBtn.disabled = false;
 			}
 		});
 
 		solicitudForm.addEventListener("submit", async (event) => {
+			if (panelSolicitud && panelSolicitud.classList.contains("active")) return;
 			event.preventDefault();
 			const formData = new FormData(solicitudForm);
 			const record = {
@@ -1970,10 +2047,21 @@
 				const beforeOriginalCount = countRowMatches(beforeRows, editContext.originalRow, editContext.columns);
 
 				if (beforeOriginalCount < 1) {
-					throw new Error("Edicion cancelada: la fila original ya no existe en la base.");
+					if (editContext.sheet === SHEET_INSUMOS) {
+						const createResponse = await fetch(`${SHEETDB_URL}?sheet=${encodeURIComponent(SHEET_INSUMOS)}`, {
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({ data: [updated] }),
+						});
+						if (!createResponse.ok) {
+							throw new Error("No se pudo crear el registro de servicios preventivos.");
+						}
+					} else {
+						throw new Error("Edicion cancelada: la fila original ya no existe en la base.");
+					}
+				} else {
+					await updateRowsInSheet(editContext.sheet, editContext.criteria, updated);
 				}
-
-				await updateRowsInSheet(editContext.sheet, editContext.criteria, updated);
 
 				const afterRows = await fetchSheet(editContext.sheet);
 				const afterUpdatedCount = countRowMatches(afterRows, updated, editContext.columns);
