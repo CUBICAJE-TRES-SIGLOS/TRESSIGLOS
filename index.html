@@ -509,7 +509,7 @@
 			<button class="tab-btn active" data-tab="detalles">Detalles de servicios</button>
 			<button class="tab-btn" data-tab="datos">Datos de unidades</button>
 			<button class="tab-btn" data-tab="taller">Unidades en taller</button>
-			<button class="tab-btn" data-tab="insumos">servicios preventivos</button>
+			<button class="tab-btn" data-tab="insumos">SOLICITUD DE LLANTAS</button>
 			<button class="tab-btn" data-tab="solicitud">costos de talleres</button>
 		</nav>
 
@@ -677,9 +677,10 @@
 
 		<section class="panel" id="panel-insumos">
 			<div class="actions">
-				<h2>servicios preventivos</h2>
-				<input class="search-box" id="searchInsumos" type="text" placeholder="Buscar en servicios preventivos..." />
+				<h2>SOLICITUD DE LLANTAS</h2>
+				<input class="search-box" id="searchInsumos" type="text" placeholder="Buscar en SOLICITUD DE LLANTAS..." />
 				<button class="btn btn-primary" id="openInsumosModalBtn">Agregar</button>
+				<button class="btn btn-secondary" id="resetSolicitudBtn">Recrear SOLICITUD</button>
 				<div class="preventivo-mini" aria-label="Tabla de estatus preventivo">
 					<table>
 						<tbody>
@@ -692,7 +693,7 @@
 				</div>
 			</div>
 			<div class="table-wrap">
-				<table aria-label="Tabla servicios preventivos">
+				<table aria-label="Tabla SOLICITUD DE LLANTAS">
 					<thead>
 						<tr>
 							<th>unidad</th>
@@ -702,7 +703,7 @@
 						</tr>
 					</thead>
 					<tbody id="insumosTbody">
-						<tr><td colspan="4" class="empty">Cargando servicios preventivos...</td></tr>
+						<tr><td colspan="4" class="empty">Cargando SOLICITUD DE LLANTAS...</td></tr>
 					</tbody>
 				</table>
 			</div>
@@ -732,7 +733,7 @@
 	<div class="modal" id="insumosModal" aria-hidden="true">
 		<div class="modal-card">
 			<div class="modal-head">
-				<h3>Agregar en servicios preventivos</h3>
+				<h3>Agregar en SOLICITUD DE LLANTAS</h3>
 				<button type="button" class="btn btn-secondary btn-small" id="closeInsumosModalBtn">Cerrar</button>
 			</div>
 			<form id="insumosForm">
@@ -889,6 +890,7 @@
 		const solicitudForm = document.getElementById("solicitudForm");
 		const saveInsumosBtn = document.getElementById("saveInsumosBtn");
 		const saveSolicitudBtn = document.getElementById("saveSolicitudBtn");
+		const resetSolicitudBtn = document.getElementById("resetSolicitudBtn");
 		const editModal = document.getElementById("editModal");
 		const editModalTitle = document.getElementById("editModalTitle");
 		const editFields = document.getElementById("editFields");
@@ -899,10 +901,12 @@
 
 		const SHEETDB_ID = "wolez9lc8e2vc";
 		const SHEETDB_URL = `https://sheetdb.io/api/v1/${SHEETDB_ID}`;
+		// If you deploy the Apps Script webapp, put its URL here so the UI can call the reset endpoint.
+		const APPS_SCRIPT_URL = ""; // e.g. https://script.google.com/macros/s/XXX/exec
 		const SHEET_UNIDADES = "UNIDADES TRES SIGLOS";
 		const SHEET_SERVICIOS = "DETALLES DE SERVICIOS";
 		const SHEET_TALLER = "unidades en taller";
-		const SHEET_INSUMOS = "servicios preventivos";
+		const SHEET_INSUMOS = "SOLICITUD DE LLANTAS";
 		const SHEET_SOLICITUD = "costos de talleres";
 		const TALLER_DEFAULT_LUGAR = "Sigue en taller";
 
@@ -1612,6 +1616,39 @@
 			document.getElementById("insumo-fecha-servicio").value = getTodayLocalISO();
 		});
 
+		resetSolicitudBtn.addEventListener("click", async () => {
+			const ok = confirm('Recrear la hoja SOLICITUD DE LLANTAS con columnas ECONOMICO y UNIDAD? Esto reemplazará los datos actuales.');
+			if (!ok) return;
+
+			if (!APPS_SCRIPT_URL) {
+				alert('APPS_SCRIPT_URL no está configurada. Agrega la URL del Web App en el código (APPS_SCRIPT_URL).');
+				return;
+			}
+
+			try {
+				const headers = ['economico', 'unidad'];
+				const rows = (unidadesRows || []).map((r) => ({
+					economico: (r['ECONOMICO'] || '').toString().trim(),
+					unidad: (r['UNIDAD'] || '').toString().trim(),
+				}));
+
+				const response = await fetch(APPS_SCRIPT_URL, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ action: 'reset', sheet: SHEET_INSUMOS, headers: headers, rows: rows }),
+				});
+
+				if (!response.ok) throw new Error('No se pudo llamar al Web App. Status ' + response.status);
+				const result = await response.json().catch(() => ({}));
+				if (!result.ok) throw new Error(result.error || 'Error en respuesta del Web App');
+				alert('La hoja SOLICITUD DE LLANTAS fue recreada. Filas escritas: ' + (result.replaced || 0));
+				await loadAllData();
+			} catch (err) {
+				console.error(err);
+				alert('Error al recrear la hoja: ' + (err.message || err));
+			}
+		});
+
 		openSolicitudModalBtn.addEventListener("click", () => {
 			openModal(solicitudModal);
 			document.getElementById("solicitud-fecha").value = getTodayLocalISO();
@@ -1713,7 +1750,7 @@
 			}
 
 			if (!rows.length) {
-				insumosTbody.innerHTML = '<tr><td colspan="4" class="empty">No hay registros en servicios preventivos.</td></tr>';
+				insumosTbody.innerHTML = '<tr><td colspan="4" class="empty">No hay registros en SOLICITUD DE LLANTAS.</td></tr>';
 				return;
 			}
 
@@ -1830,7 +1867,7 @@
 				const criteria = pickCriteria(row, ["unidad", "kilometraje actual", "fecha del ultimo servicio"]);
 				if (!Object.keys(criteria).length) { alert("No se puede editar: faltan datos clave."); return; }
 				editContext = { sheet: SHEET_INSUMOS, columns: INSUMOS_COLUMNS, criteria, originalRow: { ...row } };
-				editModalTitle.textContent = "Editar servicios preventivos";
+				editModalTitle.textContent = "Editar SOLICITUD DE LLANTAS";
 				buildEditFormFields(INSUMOS_COLUMNS, row, "insumo");
 				openEditModal();
 			}
@@ -1852,7 +1889,7 @@
 					await loadAllData();
 				} catch (error) {
 					console.error(error);
-					alert("No se pudo eliminar el registro de servicios preventivos en SheetDB.");
+					alert("No se pudo eliminar el registro en SOLICITUD DE LLANTAS en SheetDB.");
 				}
 			}
 		});
@@ -1914,13 +1951,13 @@
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify({ data: [record] }),
 				});
-				if (!response.ok) throw new Error("No se pudo guardar en servicios preventivos.");
+				if (!response.ok) throw new Error("No se pudo guardar en SOLICITUD DE LLANTAS.");
 				insumosForm.reset();
 				closeModal(insumosModal);
 				await loadAllData();
 			} catch (error) {       
 				console.error(error);
-				alert("No se pudo guardar el registro en servicios preventivos.");
+				alert("No se pudo guardar el registro en SOLICITUD DE LLANTAS.");
 			} finally {
 				saveInsumosBtn.disabled = false;
 			}
@@ -2093,7 +2130,7 @@
 							body: JSON.stringify({ data: [updated] }),
 						});
 						if (!createResponse.ok) {
-							throw new Error("No se pudo crear el registro de servicios preventivos.");
+							throw new Error("No se pudo crear el registro de SOLICITUD DE LLANTAS.");
 						}
 					} else {
 						throw new Error("Edicion cancelada: la fila original ya no existe en la base.");
