@@ -683,7 +683,7 @@
 				<div class="preventivo-mini" aria-label="Tabla de estatus preventivo">
 					<table>
 						<tbody>
-							<tr class="mini-head"><td>unidad y fecha</td></tr>
+							<tr class="mini-head"><td>Fecha de actualización base</td><td id="preventivoBaseFecha"></td></tr>
 							<tr class="mini-ok"><td>servicio realizado</td></tr>
 							<tr class="mini-warn"><td>proximo servicio preve</td></tr>
 							<tr class="mini-over"><td>vencido</td></tr>
@@ -908,7 +908,7 @@
 
 		const SERVICIO_COLUMNS = ["FECHA", "UNIDAD", "TEMA", "COMENTARIO", "ESTATUS"];
 		const TALLER_COLUMNS = ["Lugar taller", "economico", "tema", "comentario", "estatus"];
-		const INSUMOS_COLUMNS = ["unidad", "kilometraje actual", "fecha del ultimo servicio"];
+		const INSUMOS_COLUMNS = ["unidad", "kilometraje actual", "fecha del ultimo servicio", "fecha"];
 		const SOLICITUD_COLUMNS = ["fecha", "solicitante", "material", "cantidad solicitada", "estatus de entrega", "fecha de entrega"];
 		const UNIDAD_COLUMNS = [
 			"ECONOMICO",
@@ -1058,7 +1058,7 @@
 						`;
 					}
 
-					if (type === "solicitud" && (column === "fecha" || column === "fecha de entrega")) {
+					if ((type === "solicitud" && (column === "fecha" || column === "fecha de entrega")) || (type === "insumo" && (column === "fecha" || column === "fecha del ultimo servicio"))) {
 						return `
 							<div class="field">
 								<label for="${id}">${escapeHtml(column)}</label>
@@ -1096,7 +1096,7 @@
 			if (!row) return;
 
 			if (type === "servicio") {
-				const criteria = pickCriteria(row, ["FECHA", "UNIDAD", "TEMA"]);
+				const criteria = pickCriteria(row, SERVICIO_COLUMNS);
 				if (!Object.keys(criteria).length) {
 					alert("No se puede editar este servicio: faltan datos clave para ubicar la fila.");
 					return;
@@ -1119,7 +1119,7 @@
 				return;
 			}
 
-			const criteria = pickCriteria(row, ["ECONOMICO", "UNIDAD", "PLACAS", "NIV"]);
+			const criteria = pickCriteria(row, UNIDAD_COLUMNS);
 			if (!Object.keys(criteria).length) {
 				alert("No se puede editar esta unidad: faltan datos clave para ubicar la fila.");
 				return;
@@ -1277,7 +1277,31 @@
 			return { cls: "preventivo-row-over", label: "vencido" };
 		}
 
-		function applyTallerDefaults() {
+		function parseKmValue(value) {
+		const raw = (value || "").toString().trim().replace(/[^0-9.,-]/g, "").replace(/,/g, ".");
+		const num = parseFloat(raw);
+		return Number.isFinite(num) ? num : null;
+	}
+
+	function getPreventivoKmClass(km) {
+		if (km === null) return "";
+		if (km <= 14000) return "preventivo-row-ok";
+		if (km <= 15000) return "preventivo-row-warn";
+		return "preventivo-row-over";
+	}
+
+	function getPreventivoBaseFecha() {
+		const fechas = insumosRows
+			.map((row) => (row["fecha"] || "").toString().trim())
+			.filter(Boolean)
+			.map((fecha) => parseFechaForSort(fecha))
+			.filter((timestamp) => timestamp > 0);
+		if (!fechas.length) return getTodayLocalISO();
+		const maxTs = Math.max(...fechas);
+		return new Date(maxTs).toISOString().slice(0, 10);
+	}
+
+	function applyTallerDefaults() {
 			tallerLugarInput.value = TALLER_DEFAULT_LUGAR;
 		}
 
@@ -1676,10 +1700,17 @@
 						"unidad": unidad,
 						"kilometraje actual": "",
 						"fecha del ultimo servicio": "",
+						"fecha": getTodayLocalISO(),
 						__id: createLocalId(),
 					};
 				})
 				.filter((row) => rowMatchesSearch(row, query));
+
+			const baseFecha = getPreventivoBaseFecha();
+			const fechaCell = document.getElementById("preventivoBaseFecha");
+			if (fechaCell) {
+				fechaCell.textContent = baseFecha;
+			}
 
 			if (!rows.length) {
 				insumosTbody.innerHTML = '<tr><td colspan="4" class="empty">No hay registros en servicios preventivos.</td></tr>';
@@ -1691,9 +1722,10 @@
 				const kilometraje = escapeHtml(row["kilometraje actual"]);
 				const fechaUltimoServicio = escapeHtml(row["fecha del ultimo servicio"]);
 				const id = escapeHtml(row.__id);
-				const status = getPreventivoStatus(row["fecha del ultimo servicio"]);
+				const kmValue = parseKmValue(row["kilometraje actual"]);
+				const rowClass = kmValue !== null ? getPreventivoKmClass(kmValue) : getPreventivoStatus(row["fecha del ultimo servicio"]).cls;
 				return `
-					<tr class="${status.cls}">
+					<tr class="${rowClass}">
 						<td>${unidad}</td>
 						<td>${kilometraje}</td>
 						<td>${fechaUltimoServicio}</td>
@@ -1872,6 +1904,7 @@
 				"unidad": (formData.get("unidad") || "").toString().trim(),
 				"kilometraje actual": (formData.get("kilometraje actual") || "").toString().trim(),
 				"fecha del ultimo servicio": (formData.get("fecha del ultimo servicio") || "").toString().trim(),
+				"fecha": getTodayLocalISO(),
 			};
 
 			try {
@@ -1885,7 +1918,7 @@
 				insumosForm.reset();
 				closeModal(insumosModal);
 				await loadAllData();
-			} catch (error) {
+			} catch (error) {       
 				console.error(error);
 				alert("No se pudo guardar el registro en servicios preventivos.");
 			} finally {
@@ -1943,15 +1976,18 @@
 			const ok = confirm("Eliminar este servicio de la base de datos?");
 			if (!ok) return;
 
-			const criteria = pickCriteria(row, ["FECHA", "UNIDAD", "TEMA"]);
+			const criteria = pickCriteria(row, SERVICIO_COLUMNS);
 			if (!Object.keys(criteria).length) {
-				alert("No se pudo construir criterio de borrado para este servicio (FECHA, UNIDAD, TEMA).");
+				alert("No se pudo construir criterio de borrado para este servicio.");
 				return;
 			}
 
 			try {
 				const beforeRows = await fetchSheet(SHEET_SERVICIOS);
 				const beforeCount = countRowMatches(beforeRows, row, SERVICIO_COLUMNS);
+				if (beforeCount > 1) {
+					throw new Error("Hay varias filas con los mismos datos; no se puede eliminar por seguridad.");
+				}
 				await deleteRowsInSheet(SHEET_SERVICIOS, criteria);
 				const afterRows = await fetchSheet(SHEET_SERVICIOS);
 				const afterCount = countRowMatches(afterRows, row, SERVICIO_COLUMNS);
@@ -1976,7 +2012,7 @@
 			const row = unidadesRows.find((item) => item.__id === rowId);
 			if (!row) return;
 
-			const criteria = pickCriteria(row, ["ECONOMICO", "UNIDAD", "PLACAS", "NIV"]);
+			const criteria = pickCriteria(row, UNIDAD_COLUMNS);
 			if (!Object.keys(criteria).length) {
 				alert("No se puede eliminar porque no hay datos para usar como criterio.");
 				return;
@@ -1988,6 +2024,9 @@
 			try {
 				const beforeRows = await fetchSheet(SHEET_UNIDADES);
 				const beforeCount = countRowMatches(beforeRows, row, UNIDAD_COLUMNS);
+				if (beforeCount > 1) {
+					throw new Error("Hay varias filas con los mismos datos; no se puede eliminar por seguridad.");
+				}
 				await deleteRowsInSheet(SHEET_UNIDADES, criteria);
 				const afterRows = await fetchSheet(SHEET_UNIDADES);
 				const afterCount = countRowMatches(afterRows, row, UNIDAD_COLUMNS);
