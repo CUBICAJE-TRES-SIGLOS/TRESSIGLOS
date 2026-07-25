@@ -1077,6 +1077,7 @@
 		let rowCounter = 0;
 		let editContext = null;
 		let currentInsumoEditRow = null;
+		let insumosObservacionesColumnName = "OBSERVACIONES";
 
 		function createLocalId() {
 			rowCounter += 1;
@@ -1434,7 +1435,7 @@
 				insumosModalTitle.textContent = `Solicitud de llantas - ${row["unidad"] || row["economico"] || "Unidad"}`;
 				insumoEconomicoInput.value = (row["economico"] || "").toString();
 				insumoUnidadInput.value = (row["unidad"] || "").toString();
-				insumoObservacionesInput.value = (readByKey(row, "OBSERVACIONES") || "").toString();
+				insumoObservacionesInput.value = getObservacionesFromRow(row);
 			} else {
 				insumosModalTitle.textContent = "Nueva solicitud de llantas";
 			}
@@ -1454,6 +1455,15 @@
 			if (match) {
 				insumoUnidadInput.value = (match["UNIDAD"] || "").toString().trim();
 			}
+		}
+
+		function getObservacionesFromRow(row) {
+			if (!row) return "";
+			return (
+				readByKey(row, insumosObservacionesColumnName) ||
+				readByKey(row, "OBSERVACIONES") ||
+				""
+			).toString();
 		}
 
 		function queryWithSheet(sheetName, criteria) {
@@ -1748,6 +1758,14 @@
 					fetchSheet(SHEET_SOLICITUD),
 				]);
 
+				if (insumos.length) {
+					const keys = Object.keys(insumos[0] || {});
+					const detected = keys.find((k) => k.toLowerCase().trim().replace(/\s+/g, " ") === "observaciones");
+					if (detected) {
+						insumosObservacionesColumnName = detected;
+					}
+				}
+
 				serviciosRows = servicios.map((row) => ({
 					...normalizeRow(row, SERVICIO_COLUMNS),
 					__id: createLocalId(),
@@ -1911,7 +1929,7 @@
 			insumosTbody.innerHTML = rows.map((row) => {
 				const economico = escapeHtml(row["economico"]);
 				const unidad = escapeHtml(row["unidad"]);
-				const observaciones = escapeHtml(readByKey(row, "OBSERVACIONES") || "");
+				const observaciones = escapeHtml(getObservacionesFromRow(row));
 				const id = escapeHtml(row.__id);
 				return `
 					<tr>
@@ -2096,6 +2114,7 @@
 			event.preventDefault();
 			syncEjeHiddenValues();
 			const formData = new FormData(insumosForm);
+			const observacionesValue = (formData.get("OBSERVACIONES") || "").toString().trim();
 			const record = {
 				"economico": (formData.get("economico") || "").toString().trim(),
 				"unidad": (formData.get("unidad") || "").toString().trim(),
@@ -2105,8 +2124,10 @@
 				"CUARTO EJE": (formData.get("CUARTO EJE") || "").toString().trim(),
 				"QUINTO EJE": (formData.get("QUINTO EJE") || "").toString().trim(),
 				"SEXTO EJE": (formData.get("SEXTO EJE") || "").toString().trim(),
-				"OBSERVACIONES": (formData.get("OBSERVACIONES") || "").toString().trim(),
+				"OBSERVACIONES": observacionesValue,
 			};
+
+			record[insumosObservacionesColumnName] = observacionesValue;
 
 			try {
 				saveInsumosBtn.disabled = true;
