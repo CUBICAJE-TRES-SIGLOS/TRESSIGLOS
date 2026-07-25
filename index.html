@@ -165,6 +165,115 @@
 			border-radius: 8px;
 		}
 
+		.insumos-sheet {
+			display: grid;
+			grid-template-columns: 240px 1fr;
+			gap: 18px;
+			align-items: start;
+		}
+
+		.sheet-paper {
+			background-image:
+				repeating-linear-gradient(0deg, #e5e9ee 0 1px, transparent 1px 30px),
+				repeating-linear-gradient(90deg, #e5e9ee 0 1px, transparent 1px 80px);
+			background-color: #ffffff;
+			padding: 10px;
+			border: 1px solid #cfd7e3;
+		}
+
+		.sheet-meta {
+			display: grid;
+			gap: 0;
+		}
+
+		.sheet-meta-row {
+			display: grid;
+			grid-template-columns: 130px 1fr;
+			min-height: 40px;
+		}
+
+		.sheet-meta-label {
+			border: 2px solid #1f1f1f;
+			border-right: 0;
+			padding: 8px;
+			font-size: 0.88rem;
+			display: flex;
+			align-items: center;
+			background: #fff;
+		}
+
+		.sheet-meta-input {
+			border: 2px solid #1f1f1f;
+			border-radius: 0;
+			padding: 8px;
+			font-size: 0.9rem;
+			background: #fff;
+		}
+
+		.sheet-grid {
+			display: grid;
+			grid-template-columns: repeat(6, minmax(84px, 1fr));
+			gap: 10px;
+		}
+
+		.sheet-eje {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
+
+		.sheet-eje-title {
+			font-size: 0.7rem;
+			text-transform: uppercase;
+			color: #1f2f47;
+			font-weight: 700;
+			text-align: center;
+		}
+
+		.sheet-eje-cells {
+			display: grid;
+			gap: 8px;
+		}
+
+		.sheet-eje-cells input {
+			border: 2px solid #1f1f1f;
+			border-radius: 0;
+			height: 42px;
+			padding: 4px 6px;
+			background: #fff;
+		}
+
+		.sheet-observaciones {
+			margin-top: 16px;
+			display: grid;
+			grid-template-columns: 190px 1fr;
+			gap: 0;
+			align-items: stretch;
+		}
+
+		.sheet-observaciones .obs-label {
+			border: 2px solid #1f1f1f;
+			border-radius: 0;
+			border-right: 0;
+			display: flex;
+			align-items: center;
+			justify-content: flex-start;
+			padding-left: 10px;
+			font-weight: 700;
+			font-size: 0.86rem;
+			text-transform: uppercase;
+			background: #fff;
+		}
+
+		.sheet-observaciones textarea {
+			border: 2px solid #1f1f1f;
+			border-radius: 0;
+			min-height: 58px;
+			resize: vertical;
+			padding: 8px;
+			background: #fff;
+		}
+
 		.action-btn + .action-btn {
 			margin-left: 6px;
 		}
@@ -175,67 +284,28 @@
 			width: 100%;
 		}
 
-		.preventivo-mini {
-			margin-left: auto;
-			min-width: 190px;
-			max-width: 220px;
-			border: 1px solid var(--border);
-			border-radius: 10px;
-			overflow: hidden;
-			background: #fff;
-			box-shadow: 0 8px 18px rgba(20, 43, 70, 0.08);
-		}
-
-		.preventivo-mini table {
-			width: 100%;
-			min-width: 0;
-			border-collapse: collapse;
-		}
-
-		.preventivo-mini td {
-			padding: 6px 8px;
-			font-size: 0.74rem;
+		.unit-chip {
+			display: inline-flex;
+			align-items: center;
+			padding: 4px 10px;
+			border: 1px solid #b7c8de;
+			border-radius: 999px;
+			background: #f4f9ff;
 			font-weight: 700;
-			text-transform: uppercase;
-			letter-spacing: 0.02em;
-			border-bottom: 1px solid #dce5f2;
+			color: #1b3f6d;
 		}
 
-		.preventivo-mini tr:last-child td {
-			border-bottom: none;
+		.obs-mini {
+			display: inline-block;
+			min-width: 120px;
+			padding: 6px 8px;
+			border: 1px solid #c0cde0;
+			border-radius: 8px;
+			background: #f8fbff;
+			font-size: 0.8rem;
+			color: #2a3f5d;
 		}
 
-		.preventivo-mini .mini-head td {
-			background: #eef4ff;
-			color: #27497a;
-		}
-
-		.preventivo-mini .mini-ok td {
-			background: #d1fae5;
-			color: #065f46;
-		}
-
-		.preventivo-mini .mini-warn td {
-			background: #fef9c3;
-			color: #854d0e;
-		}
-
-		.preventivo-mini .mini-over td {
-			background: #fee2e2;
-			color: #991b1b;
-		}
-
-		.preventivo-row-ok td {
-			background: #ecfdf5;
-		}
-
-		.preventivo-row-warn td {
-			background: #fefce8;
-		}
-
-		.preventivo-row-over td {
-			background: #fef2f2;
-		}
 
 		.form-wrap {
 			background: var(--card);
@@ -495,6 +565,18 @@
 			.servicio-grid {
 				grid-template-columns: 1fr;
 			}
+
+			.insumos-sheet {
+				grid-template-columns: 1fr;
+			}
+
+			.sheet-grid {
+				grid-template-columns: repeat(2, minmax(96px, 1fr));
+			}
+
+			.sheet-observaciones {
+				grid-template-columns: 1fr;
+			}
 		}
 	</style>
 </head>
@@ -509,8 +591,7 @@
 			<button class="tab-btn active" data-tab="detalles">Detalles de servicios</button>
 			<button class="tab-btn" data-tab="datos">Datos de unidades</button>
 			<button class="tab-btn" data-tab="taller">Unidades en taller</button>
-			<button class="tab-btn" data-tab="insumos">SOLICITUD DE LLANTAS</button>
-			<button class="tab-btn" data-tab="solicitud">costos de talleres</button>
+			<button class="tab-btn" data-tab="insumos">Solicitud de llantas</button>
 		</nav>
 
 		<section class="panel active" id="panel-detalles">
@@ -677,33 +758,22 @@
 
 		<section class="panel" id="panel-insumos">
 			<div class="actions">
-				<h2>SOLICITUD DE LLANTAS</h2>
-				<input class="search-box" id="searchInsumos" type="text" placeholder="Buscar en SOLICITUD DE LLANTAS..." />
-				<button class="btn btn-primary" id="openInsumosModalBtn">Agregar</button>
-				<button class="btn btn-secondary" id="resetSolicitudBtn">Recrear SOLICITUD</button>
-				<div class="preventivo-mini" aria-label="Tabla de estatus preventivo">
-					<table>
-						<tbody>
-							<tr class="mini-head"><td>Fecha de actualización base</td><td id="preventivoBaseFecha"></td></tr>
-							<tr class="mini-ok"><td>servicio realizado</td></tr>
-							<tr class="mini-warn"><td>proximo servicio preve</td></tr>
-							<tr class="mini-over"><td>vencido</td></tr>
-						</tbody>
-					</table>
-				</div>
+				<h2>Solicitud de llantas</h2>
+				<input class="search-box" id="searchInsumos" type="text" placeholder="Buscar en solicitud de llantas..." />
+				<button class="btn btn-primary" id="openInsumosModalBtn">Nueva solicitud</button>
 			</div>
 			<div class="table-wrap">
 				<table aria-label="Tabla SOLICITUD DE LLANTAS">
 					<thead>
 						<tr>
+							<th>economico</th>
 							<th>unidad</th>
-							<th>kilometraje actual</th>
-							<th>fecha del ultimo servicio</th>
-							<th>Accion</th>
+							<th>OBSERVACIONES</th>
+							<th>accion</th>
 						</tr>
 					</thead>
 					<tbody id="insumosTbody">
-						<tr><td colspan="4" class="empty">Cargando SOLICITUD DE LLANTAS...</td></tr>
+						<tr><td colspan="4" class="empty">Cargando solicitud de llantas...</td></tr>
 					</tbody>
 				</table>
 			</div>
@@ -733,23 +803,87 @@
 	<div class="modal" id="insumosModal" aria-hidden="true">
 		<div class="modal-card">
 			<div class="modal-head">
-				<h3>Agregar en SOLICITUD DE LLANTAS</h3>
+				<h3 id="insumosModalTitle">Solicitud de llantas</h3>
 				<button type="button" class="btn btn-secondary btn-small" id="closeInsumosModalBtn">Cerrar</button>
 			</div>
 			<form id="insumosForm">
 				<div class="modal-body">
-					<div class="edit-grid">
-						<div class="field">
-							<label for="insumo-unidad">unidad</label>
-							<input id="insumo-unidad" name="unidad" type="text" list="insumoUnidadDatalist" required />
+					<div class="insumos-sheet sheet-paper">
+						<div class="sheet-meta">
+							<div class="sheet-meta-row">
+								<div class="sheet-meta-label">unidad</div>
+								<input class="sheet-meta-input" id="insumo-unidad" name="unidad" type="text" required />
+							</div>
+							<div class="sheet-meta-row">
+								<div class="sheet-meta-label">economico</div>
+								<input class="sheet-meta-input" id="insumo-economico" name="economico" type="text" list="insumoUnidadDatalist" required />
+							</div>
+							<div class="sheet-meta-row">
+								<div class="sheet-meta-label">OBSERVACIONES</div>
+								<input class="sheet-meta-input" id="insumo-observaciones" name="OBSERVACIONES" type="text" />
+							</div>
 						</div>
-						<div class="field">
-							<label for="insumo-km">kilometraje actual</label>
-							<input id="insumo-km" name="kilometraje actual" type="text" required />
-						</div>
-						<div class="field">
-							<label for="insumo-fecha-servicio">fecha del ultimo servicio</label>
-							<input id="insumo-fecha-servicio" name="fecha del ultimo servicio" type="date" required />
+						<div>
+							<div class="sheet-grid">
+								<div class="sheet-eje">
+									<div class="sheet-eje-title">PRIMER EJE</div>
+									<div class="sheet-eje-cells">
+										<input type="text" class="eje-cell" data-eje="PRIMER EJE" />
+										<input type="text" class="eje-cell" data-eje="PRIMER EJE" />
+									</div>
+									<input type="hidden" id="insumo-primer-eje" name="PRIMER EJE" />
+								</div>
+								<div class="sheet-eje">
+									<div class="sheet-eje-title">SEGUNDO EJE</div>
+									<div class="sheet-eje-cells">
+										<input type="text" class="eje-cell" data-eje="SEGUNDO EJE" />
+										<input type="text" class="eje-cell" data-eje="SEGUNDO EJE" />
+										<input type="text" class="eje-cell" data-eje="SEGUNDO EJE" />
+										<input type="text" class="eje-cell" data-eje="SEGUNDO EJE" />
+									</div>
+									<input type="hidden" id="insumo-segundo-eje" name="SEGUNDO EJE" />
+								</div>
+								<div class="sheet-eje">
+									<div class="sheet-eje-title">TERCER EJE</div>
+									<div class="sheet-eje-cells">
+										<input type="text" class="eje-cell" data-eje="TERCER EJE" />
+										<input type="text" class="eje-cell" data-eje="TERCER EJE" />
+										<input type="text" class="eje-cell" data-eje="TERCER EJE" />
+										<input type="text" class="eje-cell" data-eje="TERCER EJE" />
+									</div>
+									<input type="hidden" id="insumo-tercer-eje" name="TERCER EJE" />
+								</div>
+								<div class="sheet-eje">
+									<div class="sheet-eje-title">CUARTO EJE</div>
+									<div class="sheet-eje-cells">
+										<input type="text" class="eje-cell" data-eje="CUARTO EJE" />
+										<input type="text" class="eje-cell" data-eje="CUARTO EJE" />
+										<input type="text" class="eje-cell" data-eje="CUARTO EJE" />
+										<input type="text" class="eje-cell" data-eje="CUARTO EJE" />
+									</div>
+									<input type="hidden" id="insumo-cuarto-eje" name="CUARTO EJE" />
+								</div>
+								<div class="sheet-eje">
+									<div class="sheet-eje-title">QUINTO EJE</div>
+									<div class="sheet-eje-cells">
+										<input type="text" class="eje-cell" data-eje="QUINTO EJE" />
+										<input type="text" class="eje-cell" data-eje="QUINTO EJE" />
+										<input type="text" class="eje-cell" data-eje="QUINTO EJE" />
+										<input type="text" class="eje-cell" data-eje="QUINTO EJE" />
+									</div>
+									<input type="hidden" id="insumo-quinto-eje" name="QUINTO EJE" />
+								</div>
+								<div class="sheet-eje">
+									<div class="sheet-eje-title">SEXTO EJE</div>
+									<div class="sheet-eje-cells">
+										<input type="text" class="eje-cell" data-eje="SEXTO EJE" />
+										<input type="text" class="eje-cell" data-eje="SEXTO EJE" />
+										<input type="text" class="eje-cell" data-eje="SEXTO EJE" />
+										<input type="text" class="eje-cell" data-eje="SEXTO EJE" />
+									</div>
+									<input type="hidden" id="insumo-sexto-eje" name="SEXTO EJE" />
+								</div>
+							</div>
 						</div>
 					</div>
 					<datalist id="insumoUnidadDatalist"></datalist>
@@ -879,6 +1013,7 @@
 		const insumosTbody = document.getElementById("insumosTbody");
 		const solicitudTbody = document.getElementById("solicitudTbody");
 		const insumosModal = document.getElementById("insumosModal");
+		const insumosModalTitle = document.getElementById("insumosModalTitle");
 		const solicitudModal = document.getElementById("solicitudModal");
 		const openInsumosModalBtn = document.getElementById("openInsumosModalBtn");
 		const openSolicitudModalBtn = document.getElementById("openSolicitudModalBtn");
@@ -887,6 +1022,9 @@
 		const closeSolicitudModalBtn = document.getElementById("closeSolicitudModalBtn");
 		const cancelSolicitudModalBtn = document.getElementById("cancelSolicitudModalBtn");
 		const insumosForm = document.getElementById("insumosForm");
+		const insumoEconomicoInput = document.getElementById("insumo-economico");
+		const insumoUnidadInput = document.getElementById("insumo-unidad");
+		const insumoObservacionesInput = document.getElementById("insumo-observaciones");
 		const solicitudForm = document.getElementById("solicitudForm");
 		const saveInsumosBtn = document.getElementById("saveInsumosBtn");
 		const saveSolicitudBtn = document.getElementById("saveSolicitudBtn");
@@ -912,7 +1050,7 @@
 
 		const SERVICIO_COLUMNS = ["FECHA", "UNIDAD", "TEMA", "COMENTARIO", "ESTATUS"];
 		const TALLER_COLUMNS = ["Lugar taller", "economico", "tema", "comentario", "estatus"];
-		const INSUMOS_COLUMNS = ["unidad", "kilometraje actual", "fecha del ultimo servicio", "fecha"];
+		const INSUMOS_COLUMNS = ["economico", "unidad", "PRIMER EJE", "SEGUNDO EJE", "TERCER EJE", "CUARTO EJE", "QUINTO EJE", "SEXTO EJE", "OBSERVACIONES"];
 		const SOLICITUD_COLUMNS = ["fecha", "solicitante", "material", "cantidad solicitada", "estatus de entrega", "fecha de entrega"];
 		const UNIDAD_COLUMNS = [
 			"ECONOMICO",
@@ -938,6 +1076,7 @@
 		let solicitudRows = [];
 		let rowCounter = 0;
 		let editContext = null;
+		let currentInsumoEditRow = null;
 
 		function createLocalId() {
 			rowCounter += 1;
@@ -1255,58 +1394,66 @@
 			refreshUnidadInfo();
 		}
 
-		function getPreventivoUnits() {
-			const seen = new Set();
-			const units = [];
-			unidadesRows.forEach((row) => {
-				const eco = (row["ECONOMICO"] || "").toString().trim();
-				if (!/^3/.test(eco)) return;
-				const key = eco.toLowerCase();
-				if (seen.has(key)) return;
-				seen.add(key);
-				units.push(eco);
-			});
-			return units.sort((a, b) => a.localeCompare(b, "es", { numeric: true, sensitivity: "base" }));
-		}
-
-		function getPreventivoStatus(fecha) {
-			const ts = parseFechaForSort(fecha);
-			if (!ts) return { cls: "", label: "" };
-			const MS_PER_DAY = 86400000;
-			const today = new Date();
-			today.setHours(0, 0, 0, 0);
-			const days = Math.floor((today.getTime() - ts) / MS_PER_DAY);
-			if (days <= 120) return { cls: "preventivo-row-ok", label: "servicio realizado" };
-			if (days <= 180) return { cls: "preventivo-row-warn", label: "proximo servicio preve" };
-			return { cls: "preventivo-row-over", label: "vencido" };
-		}
-
-		function parseKmValue(value) {
-		const raw = (value || "").toString().trim().replace(/[^0-9.,-]/g, "").replace(/,/g, ".");
-		const num = parseFloat(raw);
-		return Number.isFinite(num) ? num : null;
-	}
-
-	function getPreventivoKmClass(km) {
-		if (km === null) return "";
-		if (km <= 14000) return "preventivo-row-ok";
-		if (km <= 15000) return "preventivo-row-warn";
-		return "preventivo-row-over";
-	}
-
-	function getPreventivoBaseFecha() {
-		const fechas = insumosRows
-			.map((row) => (row["fecha"] || "").toString().trim())
-			.filter(Boolean)
-			.map((fecha) => parseFechaForSort(fecha))
-			.filter((timestamp) => timestamp > 0);
-		if (!fechas.length) return getTodayLocalISO();
-		const maxTs = Math.max(...fechas);
-		return new Date(maxTs).toISOString().slice(0, 10);
-	}
 
 	function applyTallerDefaults() {
 			tallerLugarInput.value = TALLER_DEFAULT_LUGAR;
+		}
+
+		function syncEjeHiddenValues() {
+			const ejeNames = ["PRIMER EJE", "SEGUNDO EJE", "TERCER EJE", "CUARTO EJE", "QUINTO EJE", "SEXTO EJE"];
+			ejeNames.forEach((eje) => {
+				const cells = Array.from(insumosForm.querySelectorAll(`.eje-cell[data-eje="${eje}"]`))
+					.map((input) => (input.value || "").toString().trim())
+					.filter(Boolean);
+				const hidden = insumosForm.querySelector(`input[type="hidden"][name="${eje}"]`);
+				if (hidden) {
+					hidden.value = cells.join(" | ");
+				}
+			});
+		}
+
+		function fillEjeCellsFromRow(row) {
+			const ejes = ["PRIMER EJE", "SEGUNDO EJE", "TERCER EJE", "CUARTO EJE", "QUINTO EJE", "SEXTO EJE"];
+			ejes.forEach((eje) => {
+				const value = (row && row[eje] ? row[eje] : "").toString().trim();
+				const parts = value ? value.split("|").map((item) => item.trim()) : [];
+				const cells = Array.from(insumosForm.querySelectorAll(`.eje-cell[data-eje="${eje}"]`));
+				cells.forEach((cell, idx) => {
+					cell.value = parts[idx] || "";
+				});
+				const hidden = insumosForm.querySelector(`input[type="hidden"][name="${eje}"]`);
+				if (hidden) hidden.value = value;
+			});
+		}
+
+		function openInsumosForm(row = null) {
+			currentInsumoEditRow = row;
+			insumosForm.reset();
+			fillEjeCellsFromRow(row || {});
+			if (row) {
+				insumosModalTitle.textContent = `Solicitud de llantas - ${row["unidad"] || row["economico"] || "Unidad"}`;
+				insumoEconomicoInput.value = (row["economico"] || "").toString();
+				insumoUnidadInput.value = (row["unidad"] || "").toString();
+				insumoObservacionesInput.value = (readByKey(row, "OBSERVACIONES") || "").toString();
+			} else {
+				insumosModalTitle.textContent = "Nueva solicitud de llantas";
+			}
+			openModal(insumosModal);
+			insumoEconomicoInput.focus();
+		}
+
+		function syncInsumoUnidadFromEconomico() {
+			const q = normalizeText(insumoEconomicoInput.value);
+			if (!q) {
+				if (!currentInsumoEditRow) insumoUnidadInput.value = "";
+				return;
+			}
+
+			const exact = unidadesRows.find((row) => normalizeText(row["ECONOMICO"]) === q);
+			const match = exact || unidadesRows.find((row) => normalizeText(row["ECONOMICO"]).startsWith(q));
+			if (match) {
+				insumoUnidadInput.value = (match["UNIDAD"] || "").toString().trim();
+			}
 		}
 
 		function queryWithSheet(sheetName, criteria) {
@@ -1365,6 +1512,31 @@
 		}
 
 		async function updateRowsInSheet(sheetName, criteria, data) {
+			if (sheetName === SHEET_INSUMOS) {
+				const [firstKey, firstValue] = getFallbackCriteria(sheetName, criteria);
+				if (!firstKey || !firstValue) {
+					throw new Error("No se pudo actualizar: no hay criterio valido para SOLICITUD DE LLANTAS.");
+				}
+
+				const directUrl = `${SHEETDB_URL}/${encodeURIComponent(firstKey)}/${encodeURIComponent(firstValue)}?sheet=${encodeURIComponent(sheetName)}`;
+				const directResponse = await fetch(directUrl, {
+					method: "PATCH",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ data }),
+				});
+
+				if (!directResponse.ok) {
+					const detail = await directResponse.text().catch(() => "");
+					throw new Error(`No se pudo actualizar en SheetDB. Status ${directResponse.status}. ${detail}`.trim());
+				}
+
+				const directResult = await directResponse.json().catch(() => ({}));
+				if (typeof directResult.updated === "number" && directResult.updated < 1) {
+					throw new Error("SheetDB no actualizo ningun registro.");
+				}
+				return;
+			}
+
 			const params = queryWithSheet(sheetName, criteria);
 			let response = await fetch(`${SHEETDB_URL}/search?${params.toString()}`, {
 				method: "PATCH",
@@ -1398,6 +1570,29 @@
 		}
 
 		async function deleteRowsInSheet(sheetName, criteria) {
+			if (sheetName === SHEET_INSUMOS) {
+				const [firstKey, firstValue] = getFallbackCriteria(sheetName, criteria);
+				if (!firstKey || !firstValue) {
+					throw new Error("No se pudo eliminar: no hay criterio valido para SOLICITUD DE LLANTAS.");
+				}
+
+				const directUrl = `${SHEETDB_URL}/${encodeURIComponent(firstKey)}/${encodeURIComponent(firstValue)}?sheet=${encodeURIComponent(sheetName)}`;
+				const directResponse = await fetch(directUrl, {
+					method: "DELETE",
+				});
+
+				if (!directResponse.ok) {
+					const detail = await directResponse.text().catch(() => "");
+					throw new Error(`No se pudo eliminar en SheetDB. Status ${directResponse.status}. ${detail}`.trim());
+				}
+
+				const directResult = await directResponse.json().catch(() => ({}));
+				if (typeof directResult.deleted === "number" && directResult.deleted < 1) {
+					throw new Error("SheetDB no elimino ningun registro.");
+				}
+				return;
+			}
+
 			const params = queryWithSheet(sheetName, criteria);
 			let response = await fetch(`${SHEETDB_URL}/search?${params.toString()}`, {
 				method: "DELETE",
@@ -1611,43 +1806,20 @@
 		});
 
 		openInsumosModalBtn.addEventListener("click", () => {
-			openModal(insumosModal);
-			document.getElementById("insumo-unidad").focus();
-			document.getElementById("insumo-fecha-servicio").value = getTodayLocalISO();
+			openInsumosForm(null);
 		});
 
-		resetSolicitudBtn.addEventListener("click", async () => {
-			const ok = confirm('Recrear la hoja SOLICITUD DE LLANTAS con columnas ECONOMICO y UNIDAD? Esto reemplazará los datos actuales.');
-			if (!ok) return;
-
-			if (!APPS_SCRIPT_URL) {
-				alert('APPS_SCRIPT_URL no está configurada. Agrega la URL del Web App en el código (APPS_SCRIPT_URL).');
-				return;
-			}
-
-			try {
-				const headers = ['economico', 'unidad'];
-				const rows = (unidadesRows || []).map((r) => ({
-					economico: (r['ECONOMICO'] || '').toString().trim(),
-					unidad: (r['UNIDAD'] || '').toString().trim(),
-				}));
-
-				const response = await fetch(APPS_SCRIPT_URL, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ action: 'reset', sheet: SHEET_INSUMOS, headers: headers, rows: rows }),
-				});
-
-				if (!response.ok) throw new Error('No se pudo llamar al Web App. Status ' + response.status);
-				const result = await response.json().catch(() => ({}));
-				if (!result.ok) throw new Error(result.error || 'Error en respuesta del Web App');
-				alert('La hoja SOLICITUD DE LLANTAS fue recreada. Filas escritas: ' + (result.replaced || 0));
-				await loadAllData();
-			} catch (err) {
-				console.error(err);
-				alert('Error al recrear la hoja: ' + (err.message || err));
-			}
+		insumoEconomicoInput.addEventListener("input", () => {
+			syncInsumoUnidadFromEconomico();
 		});
+
+		insumoEconomicoInput.addEventListener("change", () => {
+			syncInsumoUnidadFromEconomico();
+		});
+
+		if (resetSolicitudBtn) {
+			resetSolicitudBtn.style.display = "none";
+		}
 
 		openSolicitudModalBtn.addEventListener("click", () => {
 			openModal(solicitudModal);
@@ -1722,52 +1894,34 @@
 
 		function renderInsumos() {
 			const query = (searchInsumos.value || "").trim().toLowerCase();
-			const rowsByUnidad = new Map();
-			insumosRows.forEach((row) => {
-				const unidad = (row["unidad"] || "").toString().trim();
-				if (!unidad) return;
-				rowsByUnidad.set(unidad.toLowerCase(), row);
-			});
-
-			const rows = getPreventivoUnits()
-				.map((unidad) => {
-					const found = rowsByUnidad.get(unidad.toLowerCase());
-					if (found) return found;
-					return {
-						"unidad": unidad,
-						"kilometraje actual": "",
-						"fecha del ultimo servicio": "",
-						"fecha": getTodayLocalISO(),
-						__id: createLocalId(),
-					};
+			const rows = insumosRows
+				.filter((row) => {
+					const ejes = ["PRIMER EJE", "SEGUNDO EJE", "TERCER EJE", "CUARTO EJE", "QUINTO EJE", "SEXTO EJE"];
+					const hasEje = ejes.some((eje) => (row[eje] || "").toString().trim());
+					const hasObservaciones = (readByKey(row, "OBSERVACIONES") || "").toString().trim();
+					return hasEje || hasObservaciones;
 				})
 				.filter((row) => rowMatchesSearch(row, query));
 
-			const baseFecha = getPreventivoBaseFecha();
-			const fechaCell = document.getElementById("preventivoBaseFecha");
-			if (fechaCell) {
-				fechaCell.textContent = baseFecha;
-			}
-
 			if (!rows.length) {
-				insumosTbody.innerHTML = '<tr><td colspan="4" class="empty">No hay registros en SOLICITUD DE LLANTAS.</td></tr>';
+				insumosTbody.innerHTML = '<tr><td colspan="4" class="empty">No hay unidades con solicitud de llantas.</td></tr>';
 				return;
 			}
 
 			insumosTbody.innerHTML = rows.map((row) => {
+				const economico = escapeHtml(row["economico"]);
 				const unidad = escapeHtml(row["unidad"]);
-				const kilometraje = escapeHtml(row["kilometraje actual"]);
-				const fechaUltimoServicio = escapeHtml(row["fecha del ultimo servicio"]);
+				const observaciones = escapeHtml(readByKey(row, "OBSERVACIONES") || "");
 				const id = escapeHtml(row.__id);
-				const kmValue = parseKmValue(row["kilometraje actual"]);
-				const rowClass = kmValue !== null ? getPreventivoKmClass(kmValue) : getPreventivoStatus(row["fecha del ultimo servicio"]).cls;
 				return `
-					<tr class="${rowClass}">
-						<td>${unidad}</td>
-						<td>${kilometraje}</td>
-						<td>${fechaUltimoServicio}</td>
+					<tr>
+						<td><span class="unit-chip">${economico || "-"}</span></td>
+						<td><span class="unit-chip">${unidad || "-"}</span></td>
+						<td><span class="obs-mini">${observaciones || "-"}</span></td>
 						<td>
-							<button class="btn btn-secondary btn-small action-btn" data-action="edit-insumo" data-id="${id}">Editar</button>
+							<button class="btn btn-secondary btn-small action-btn" data-action="show-insumo" data-id="${id}">Mostrar</button>
+							<button class="btn btn-primary btn-small action-btn" data-action="edit-insumo" data-id="${id}">Editar</button>
+							<button class="btn btn-danger btn-small action-btn" data-action="delete-insumo" data-id="${id}">Eliminar</button>
 						</td>
 					</tr>
 				`;
@@ -1861,24 +2015,28 @@
 			const action = button.dataset.action;
 			const rowId = button.dataset.id;
 
+			if (action === "show-insumo") {
+				const row = insumosRows.find((item) => item.__id === rowId);
+				if (!row) return;
+				openInsumosForm(row);
+			}
+
 			if (action === "edit-insumo") {
 				const row = insumosRows.find((item) => item.__id === rowId);
 				if (!row) return;
-				const criteria = pickCriteria(row, ["unidad", "kilometraje actual", "fecha del ultimo servicio"]);
-				if (!Object.keys(criteria).length) { alert("No se puede editar: faltan datos clave."); return; }
-				editContext = { sheet: SHEET_INSUMOS, columns: INSUMOS_COLUMNS, criteria, originalRow: { ...row } };
-				editModalTitle.textContent = "Editar SOLICITUD DE LLANTAS";
-				buildEditFormFields(INSUMOS_COLUMNS, row, "insumo");
-				openEditModal();
+				openInsumosForm(row);
 			}
 
 			if (action === "delete-insumo") {
 				const row = insumosRows.find((item) => item.__id === rowId);
 				if (!row) return;
-				const ok = confirm(`Eliminar registro de servicio preventivo "${row["unidad"]}"?`);
+				const ok = confirm(`Eliminar solicitud de llantas para ${row["unidad"] || row["economico"]}?`);
 				if (!ok) return;
-				const criteria = pickCriteria(row, ["unidad", "kilometraje actual", "fecha del ultimo servicio"]);
-				if (!Object.keys(criteria).length) { alert("No se puede eliminar: faltan datos clave."); return; }
+				const criteria = pickCriteria(row, ["economico", "unidad"]);
+				if (!Object.keys(criteria).length) {
+					alert("No se puede eliminar: faltan datos clave.");
+					return;
+				}
 				try {
 					const beforeRows = await fetchSheet(SHEET_INSUMOS);
 					const beforeCount = countRowMatches(beforeRows, row, INSUMOS_COLUMNS);
@@ -1889,7 +2047,7 @@
 					await loadAllData();
 				} catch (error) {
 					console.error(error);
-					alert("No se pudo eliminar el registro en SOLICITUD DE LLANTAS en SheetDB.");
+					alert("No se pudo eliminar la solicitud de llantas.");
 				}
 			}
 		});
@@ -1936,28 +2094,43 @@
 
 		insumosForm.addEventListener("submit", async (event) => {
 			event.preventDefault();
+			syncEjeHiddenValues();
 			const formData = new FormData(insumosForm);
 			const record = {
+				"economico": (formData.get("economico") || "").toString().trim(),
 				"unidad": (formData.get("unidad") || "").toString().trim(),
-				"kilometraje actual": (formData.get("kilometraje actual") || "").toString().trim(),
-				"fecha del ultimo servicio": (formData.get("fecha del ultimo servicio") || "").toString().trim(),
-				"fecha": getTodayLocalISO(),
+				"PRIMER EJE": (formData.get("PRIMER EJE") || "").toString().trim(),
+				"SEGUNDO EJE": (formData.get("SEGUNDO EJE") || "").toString().trim(),
+				"TERCER EJE": (formData.get("TERCER EJE") || "").toString().trim(),
+				"CUARTO EJE": (formData.get("CUARTO EJE") || "").toString().trim(),
+				"QUINTO EJE": (formData.get("QUINTO EJE") || "").toString().trim(),
+				"SEXTO EJE": (formData.get("SEXTO EJE") || "").toString().trim(),
+				"OBSERVACIONES": (formData.get("OBSERVACIONES") || "").toString().trim(),
 			};
 
 			try {
 				saveInsumosBtn.disabled = true;
-				const response = await fetch(`${SHEETDB_URL}?sheet=${encodeURIComponent(SHEET_INSUMOS)}`, {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ data: [record] }),
-				});
-				if (!response.ok) throw new Error("No se pudo guardar en SOLICITUD DE LLANTAS.");
+				if (currentInsumoEditRow) {
+					const criteria = pickCriteria(currentInsumoEditRow, ["economico", "unidad"]);
+					if (!Object.keys(criteria).length) {
+						throw new Error("No se pudo actualizar: faltan datos base.");
+					}
+					await updateRowsInSheet(SHEET_INSUMOS, criteria, record);
+				} else {
+					const response = await fetch(`${SHEETDB_URL}?sheet=${encodeURIComponent(SHEET_INSUMOS)}`, {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ data: [record] }),
+					});
+					if (!response.ok) throw new Error("No se pudo guardar en solicitud de llantas.");
+				}
 				insumosForm.reset();
+				currentInsumoEditRow = null;
 				closeModal(insumosModal);
 				await loadAllData();
 			} catch (error) {       
 				console.error(error);
-				alert("No se pudo guardar el registro en SOLICITUD DE LLANTAS.");
+				alert(error.message || "No se pudo guardar el registro en solicitud de llantas.");
 			} finally {
 				saveInsumosBtn.disabled = false;
 			}
